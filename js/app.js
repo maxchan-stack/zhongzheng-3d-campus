@@ -353,6 +353,10 @@ function buildAllBuildings() {
   });
 }
 
+const brickStudsGroup = new THREE.Group();
+brickStudsGroup.visible = false;
+scene.add(brickStudsGroup);
+
 let monetSkyMesh = null;
 function createMonetStarrySky() {
   const canvas = document.createElement('canvas');
@@ -3674,6 +3678,15 @@ function handleTestHash() {
     syncFpvCamera();
   } else if (h === '#test=brick') {
     setVisualTheme('brick');
+  } else if (h === '#test=night') {
+    setVisualTheme('night');
+    document.getElementById('right-panel')?.classList.add('collapsed');
+    camera.fov = 54;
+    camera.updateProjectionMatrix();
+    camera.position.set(pxToWorldX(920), 34, pyToWorldZ(680));
+    controls.target.set(pxToWorldX(420), 48, pyToWorldZ(200));
+    state.cameraTween = null;
+    controls.update();
   } else if (h.startsWith('#test=trees')) {
     const n = parseInt(h.replace('#test=trees', ''), 10) || 5000;
     const stats = buildStressTrees(n);
