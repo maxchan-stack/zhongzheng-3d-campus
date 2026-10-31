@@ -77,7 +77,7 @@ const html = `<!DOCTYPE html>
           <button type="button" class="theme-item active" data-theme="day">晴空寫實</button>
           <button type="button" class="theme-item" data-theme="pixel">像素冒險</button>
           <button type="button" class="theme-item" data-theme="brick">微縮積木</button>
-          <button type="button" class="theme-item" data-theme="night">星夜光彩（莫內）</button>
+          <button type="button" class="theme-item" data-theme="night">星夜光彩</button>
         </div>
       </div>
       <button id="btn-toggle-eco" class="ctrl-btn" title="切換省電渲染模式">省電模式</button>
@@ -100,7 +100,7 @@ const html = `<!DOCTYPE html>
         </div>
       </div>
     </button>
-    <div class="compass-caption" id="compass-heading-txt">北方：文林北路側 (+X)</div>
+    <div class="compass-caption" id="compass-heading-txt">北方：文承路／北科路側 (+X)</div>
     <button type="button" id="compass-expand-btn" class="mobile-only-btn" title="展開或收合方向操控盤">操控 ▾</button>
 
     <div class="compass-extra-controls">
@@ -193,8 +193,8 @@ const html = `<!DOCTYPE html>
       <!-- 頁籤 3：方位判斷與校園圖例說明 -->
       <div id="tab-guide" class="tab-pane">
         <div class="building-desc" style="font-size:12px;">
-          <strong>方位與比例尺基準說明：</strong><br/>
-          1. <strong>校園平面圖</strong>：以圖面<strong>右邊為北方 (+X)</strong>，左邊為南方 (-X)，上方為西方 (-Z)，下方為東方 (+Z)。<br/>
+          <strong>方位與周邊道路基準說明：</strong><br/>
+          1. <strong>校園四周真實路名</strong>：上方（西側 -Z）為<strong>士科路</strong>；下方（東側 +Z）為<strong>文林北路 75 巷</strong>；左方（南側 -X）為<strong>福國路／文林北路 53 巷（文林橋）</strong>；右方（北側 +X）為<strong>文承路</strong>，東北斜向校門口為<strong>北科路</strong>與<strong>文林北路</strong>交會口。<br/>
           2. <strong>教室配置圖 (115.8.12)</strong>：圖面<strong>右側為西方</strong>，左側為東方。<br/>
           3. <strong>400m 田徑場比例尺</strong>：田徑場跑道外圍總長約 162.8 m，換算比例尺為 <code>1 px = 0.27 m</code>，每層樓高 <code>3.6 m</code>。<br/>
           4. <strong>全區立體設施</strong>：包含各教學大樓、圖書館 (3 層)、中正園、裝置藝術、藝德女神、四格池、生態池、大榕樹花圃、停車棚／停車位 (P) 與各類運動球場。

@@ -942,7 +942,9 @@ function buildCampus3DDetails() {
 }
 
 function buildCleanGroundRoadsAndWalls() {
-  const asphaltMat = new THREE.MeshStandardMaterial({ color: 0x4f545c, roughness: 0.9 });
+  const asphaltMat = new THREE.MeshStandardMaterial({ color: 0x4a4f57, roughness: 0.88 });
+  const roadEdgeMat = new THREE.MeshBasicMaterial({ color: 0xe6e4dc });
+  const yellowLineMat = new THREE.MeshBasicMaterial({ color: 0xe8b931 });
   const walkwayMat = new THREE.MeshStandardMaterial({ color: 0x6c727a, roughness: 0.88 });
   const plazaStoneMat = new THREE.MeshStandardMaterial({ color: 0xdfd8c8, roughness: 0.85 });
   const baseballGrassMat = new THREE.MeshStandardMaterial({ color: 0x62a146, roughness: 0.9 });
@@ -958,11 +960,63 @@ function buildCleanGroundRoadsAndWalls() {
     details3DGroup.add(m);
   }
 
-  // 校園內部主要道路與廣場鋪面（取代原本 2D 平面圖貼圖）
+  function addPolygonRoad(polyPx, mat, y = 0.07) {
+    const shape = new THREE.Shape();
+    polyPx.forEach(([px, py], idx) => {
+      const sx = pxToWorldX(px);
+      const sy = -pyToWorldZ(py);
+      if (idx === 0) shape.moveTo(sx, sy);
+      else shape.lineTo(sx, sy);
+    });
+    shape.closePath();
+    const mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), mat);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.y = y;
+    mesh.receiveShadow = true;
+    details3DGroup.add(mesh);
+  }
+
+  function addRoadStripLine(x1, y1, x2, y2, widthM, mat, y = 0.16) {
+    const wx1 = pxToWorldX(x1);
+    const wz1 = pyToWorldZ(y1);
+    const wx2 = pxToWorldX(x2);
+    const wz2 = pyToWorldZ(y2);
+    const len = Math.hypot(wx2 - wx1, wz2 - wz1);
+    const geo = new THREE.PlaneGeometry(len, widthM);
+    geo.rotateX(-Math.PI / 2);
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set((wx1 + wx2) / 2, y, (wz1 + wz2) / 2);
+    mesh.rotation.y = -Math.atan2(wz2 - wz1, wx2 - wx1);
+    details3DGroup.add(mesh);
+  }
+
+  function addZebraCrosswalk(x1, y1, x2, y2, stripeLenM, stripeWidthM, numStripes, mat, y = 0.17) {
+    const wx1 = pxToWorldX(x1);
+    const wz1 = pyToWorldZ(y1);
+    const wx2 = pxToWorldX(x2);
+    const wz2 = pyToWorldZ(y2);
+    const dx = wx2 - wx1;
+    const dz = wz2 - wz1;
+    // 斑馬線枕木紋長軸平行於車行方向（垂直於行人穿越方向）
+    const rx = -dz;
+    const rz = dx;
+    const rotY = -Math.atan2(rz, rx);
+    for (let i = 0; i < numStripes; i++) {
+      const t = (i + 0.5) / numStripes;
+      const geo = new THREE.PlaneGeometry(stripeLenM, stripeWidthM);
+      geo.rotateX(-Math.PI / 2);
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(wx1 + dx * t, y, wz1 + dz * t);
+      mesh.rotation.y = rotY;
+      details3DGroup.add(mesh);
+    }
+  }
+
+  // 校園內部主要道路與廣場鋪面
   addGroundSlab(110, 492, 815, 58, walkwayMat, 0.05);   // 林蔭大道
   addGroundSlab(150, 775, 400, 185, asphaltMat, 0.04);  // 藝德樓南側車道與停車區
-  addGroundSlab(552, 908, 465, 86, asphaltMat, 0.04);   // 校門至停車棚車道
-  addGroundSlab(770, 462, 195, 55, asphaltMat, 0.05);   // 排球場南側柏油空地（214 實景照片前景）
+  addGroundSlab(552, 908, 405, 76, asphaltMat, 0.05);   // 格致樓外車道（機車與腳踏車停車棚通道）
+  addGroundSlab(770, 462, 195, 55, asphaltMat, 0.05);   // 排球場南側柏油空地
   addGroundSlab(80, 560, 455, 165, baseballGrassMat, 0.05); // 棒球場外野草皮
 
   // 藝德女神半圓廣場與棒球場紅土內野
@@ -975,19 +1029,74 @@ function buildCleanGroundRoadsAndWalls() {
   baseballClay.position.set(pxToWorldX(425), 0.09, pyToWorldZ(665));
   details3DGroup.add(baseballClay);
 
-  // 校園外圍真實街道（文林北路、明德路側、承德路側、河濱側）
-  addGroundSlab(1355, -120, 95, 1320, asphaltMat, 0.03); // 北側 (+X)：文林北路
-  addGroundSlab(-90, 995, 1540, 80, asphaltMat, 0.03);   // 東側 (+Z)：文林北路 75 巷（校門前道路）
-  addGroundSlab(-90, -120, 1540, 75, asphaltMat, 0.03);  // 西側 (-Z)：洲美街／河濱公園側
-  addGroundSlab(-95, -120, 80, 1190, asphaltMat, 0.03);  // 南側 (-X)：明德路／承德路側
+  // === 校園四周真實道路網（依 Google Maps 衛星圖與 3D 實景圖精確繪製） ===
+  // 1. 西側 (-Z，圖面上方)：士科路
+  addGroundSlab(-160, -118, 1590, 76, asphaltMat, 0.04);
+  addRoadStripLine(-140, -80, 1340, -80, 0.35, yellowLineMat, 0.11);
 
-  // 校園四周實體圍牆（含東北側活動中心旁斜向圍牆 px: 1142, py: 852 -> px: 1338, py: 702）
+  // 2. 南側 (-X，圖面左方)：文林北路 53 巷（緊鄰圍牆）與福國路／文林橋（外側雙向幹道）
+  addGroundSlab(-45, -118, 68, 1184, asphaltMat, 0.04);  // 文林北路 53 巷
+  addGroundSlab(-160, -118, 96, 1184, asphaltMat, 0.04); // 福國路／文林橋
+  addRoadStripLine(-112, -100, -112, 1050, 0.40, yellowLineMat, 0.11);
+
+  // 3. 北側 (+X，圖面右上方)：文承路（沿迎曦樓與活動中心外側延伸，至活動中心東南角轉折）
+  addPolygonRoad([
+    [1338, -118],
+    [1422, -118],
+    [1422, 680],
+    [1520, 825],
+    [1448, 875],
+    [1338, 702]
+  ], asphaltMat, 0.06);
+  addRoadStripLine(1380, -100, 1380, 675, 0.35, yellowLineMat, 0.11);
+
+  // 4. 東側 (+Z，圖面下方)：文林北路 75 巷、東北斜向「北科路」、校門口前路口與東南向「文林北路」主幹道
+  addPolygonRoad([
+    // 文林北路 75 巷內側邊界（嚴格位於東側圍牆 py=985 外側）
+    [-160, 988],
+    [960, 988],
+    // 沿校門口大門線 (960, 988 -> 1018, 934) 與警衛室外緣銜接北科路內側邊界
+    [1018, 934],
+    [1048, 902],
+    [1142, 852],
+    [1338, 702],
+    // 北科路東北端（接文承路）外緣
+    [1420, 702],
+    [1412, 750],
+    // 北科路東南側外緣往西南斜下至校門口大路口
+    [1118, 976],
+    // 東南向延伸之「文林北路」主幹道
+    [1295, 1140],
+    [1215, 1205],
+    [1015, 1066],
+    // 接回文林北路 75 巷南側外緣
+    [-160, 1066]
+  ], asphaltMat, 0.08);
+
+  // 校門口前道路標線：雙黃線、路邊白線、停止線與三向行人穿越道（斑馬線）
+  addRoadStripLine(-140, 1027, 896, 1027, 0.42, yellowLineMat, 0.15); // 文林北路 75 巷雙黃線
+  addRoadStripLine(960, 991, -140, 991, 0.22, roadEdgeMat, 0.15);     // 文林北路 75 巷靠校牆白邊線
+  addRoadStripLine(1098, 932, 1372, 722, 0.42, yellowLineMat, 0.15);  // 北科路中央雙黃線
+  addRoadStripLine(1048, 905, 1144, 854, 0.24, roadEdgeMat, 0.15);    // 北科路靠校牆白邊線（前段）
+  addRoadStripLine(1144, 854, 1338, 705, 0.24, roadEdgeMat, 0.15);    // 北科路靠校牆白邊線（後段）
+  addRoadStripLine(1062, 1038, 1245, 1168, 0.42, yellowLineMat, 0.15);// 文林北路雙黃線
+
+  // 校門大門出入口停止線與路口三組標準枕木紋斑馬線
+  addRoadStripLine(962, 984, 1016, 934, 0.35, roadEdgeMat, 0.16);     // 校門口出車停止線
+  addRoadStripLine(902, 1027, 902, 1063, 0.32, roadEdgeMat, 0.15);    // 文林北路 75 巷停止線
+  addZebraCrosswalk(928, 994, 928, 1060, 3.6, 0.48, 7, roadEdgeMat, 0.16);  // 文林北路 75 巷斑馬線
+  addZebraCrosswalk(1058, 908, 1112, 970, 3.6, 0.48, 7, roadEdgeMat, 0.16); // 北科路路口斑馬線
+  addZebraCrosswalk(1018, 1060, 1082, 1002, 3.6, 0.48, 7, roadEdgeMat, 0.16);// 文林北路路口斑馬線
+
+  // 校園四周實體圍牆（含東側文林北路 75 巷圍牆與東北側北科路斜向圍牆）
   const wallNorth = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.8, (702 - 62) * SCALE), wallMat);
   wallNorth.position.set(pxToWorldX(1338), 0.9, pyToWorldZ((62 + 702) / 2));
-  const wallSouth = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.8, WORLD_D * 0.92), wallMat);
-  wallSouth.position.set(pxToWorldX(28), 0.9, pyToWorldZ(520));
-  const wallWest = new THREE.Mesh(new THREE.BoxGeometry(WORLD_W * 0.92, 1.8, 0.6), wallMat);
-  wallWest.position.set(pxToWorldX(685), 0.9, pyToWorldZ(62));
+  const wallSouth = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.8, (985 - 62) * SCALE), wallMat);
+  wallSouth.position.set(pxToWorldX(28), 0.9, pyToWorldZ((62 + 985) / 2));
+  const wallWest = new THREE.Mesh(new THREE.BoxGeometry((1338 - 28) * SCALE, 1.8, 0.6), wallMat);
+  wallWest.position.set(pxToWorldX((28 + 1338) / 2), 0.9, pyToWorldZ(62));
+  const wallEast = new THREE.Mesh(new THREE.BoxGeometry((960 - 28) * SCALE, 1.8, 0.6), wallMat);
+  wallEast.position.set(pxToWorldX((28 + 960) / 2), 0.9, pyToWorldZ(985));
 
   const diagX1 = pxToWorldX(1142), diagZ1 = pyToWorldZ(852);
   const diagX2 = pxToWorldX(1338), diagZ2 = pyToWorldZ(702);
@@ -996,14 +1105,23 @@ function buildCleanGroundRoadsAndWalls() {
   wallDiag.position.set((diagX1 + diagX2) / 2, 0.9, (diagZ1 + diagZ2) / 2);
   wallDiag.rotation.y = -Math.atan2(diagZ2 - diagZ1, diagX2 - diagX1);
 
-  details3DGroup.add(wallNorth, wallSouth, wallWest, wallDiag);
+  // 校門石柱碑 (1048, 895) 連接至斜牆起點 (1142, 852) 之圍牆段
+  const gateWallX1 = pxToWorldX(1048), gateWallZ1 = pyToWorldZ(895);
+  const gateWallLen = Math.hypot(diagX1 - gateWallX1, diagZ1 - gateWallZ1);
+  const wallGateLink = new THREE.Mesh(new THREE.BoxGeometry(gateWallLen, 1.8, 0.6), wallMat);
+  wallGateLink.position.set((gateWallX1 + diagX1) / 2, 0.9, (gateWallZ1 + diagZ1) / 2);
+  wallGateLink.rotation.y = -Math.atan2(diagZ1 - gateWallZ1, diagX1 - gateWallX1);
 
-  // 周邊道路與東西南北 3D 浮動標籤
+  details3DGroup.add(wallNorth, wallSouth, wallWest, wallEast, wallDiag, wallGateLink);
+
+  // 周邊真實道路與東西南北 3D 浮動標籤（完全對照 Google Maps 衛星圖路名）
   const perimeterLabels = [
-    { text: '⬆ 北 (N) · 文林北路', px: 1385, py: 520 },
-    { text: '⬇ 南 (S) · 明德路／軟橋裕民側', px: -45, py: 520 },
-    { text: '⬅ 西 (W) · 洲美街／基隆河濱側', px: 680, py: -45 },
-    { text: '➡ 東 (E) · 文林北路 75 巷（校門側）', px: 680, py: 1035 }
+    { text: '⬆ 北 (N) · 文承路', px: 1385, py: 420 },
+    { text: '↗ 北科路', px: 1225, py: 835 },
+    { text: '↘ 文林北路（校門路口）', px: 1125, py: 1085 },
+    { text: '➡ 東 (E) · 文林北路 75 巷', px: 650, py: 1032 },
+    { text: '⬇ 南 (S) · 福國路／文林北路 53 巷（文林橋）', px: -75, py: 520 },
+    { text: '⬅ 西 (W) · 士科路', px: 660, py: -78 }
   ];
   perimeterLabels.forEach((info) => {
     const el = document.createElement('div');
@@ -1165,16 +1283,16 @@ function buildGateAndEastPlazaDetails() {
   plazaTex.wrapT = THREE.RepeatWrapping;
   plazaTex.repeat.set(0.18, 0.18);
 
-  // 平面圖迎賓廣場真實多邊形頂點 (px, py)：左接中正樓與至聖樓 (952)，右接活動中心與南側樹林區西緣 (1126)，南接斜向校門口與警衛室
+  // 平面圖迎賓廣場真實多邊形頂點 (px, py)：完整涵蓋至聖樓與中正樓東側、中正園、警衛室基座至校門大門口 (962, 982 -> 1016, 932)
   const plazaPolyPx = [
     [952, 492],
     [1146, 492],
     [1146, 662],
     [1124, 662],
     [1124, 852],
-    [1045, 898],
-    [1016, 928],
-    [965, 982],
+    [1048, 895],
+    [1016, 932],
+    [962, 982],
     [952, 982]
   ];
   const plazaShape = new THREE.Shape();
@@ -1195,13 +1313,14 @@ function buildGateAndEastPlazaDetails() {
   plazaMesh.receiveShadow = true;
   details3DGroup.add(plazaMesh);
 
-  // 活動中心南側三角形森林綠地鋪面 (px: 1126..1335, py: 658..850)，對齊平面圖門口方位樹木區底色
+  // 活動中心南側三角形森林綠地鋪面 (px: 1048..1336, py: 658..895)，完整填滿斜向圍牆內側樹林區
   const grovePolyPx = [
-    [1126, 658],
+    [1124, 658],
     [1336, 658],
     [1336, 702],
     [1142, 852],
-    [1126, 852]
+    [1048, 895],
+    [1124, 852]
   ];
   const groveShape = new THREE.Shape();
   grovePolyPx.forEach(([px, py], idx) => {
@@ -1373,15 +1492,7 @@ function buildGateAndEastPlazaDetails() {
     }
   });
 
-  // 校門口前斑馬線與道路標線
-  for (let s = 0; s < 7; s++) {
-    const zebra = new THREE.Mesh(new THREE.PlaneGeometry(3.8, 0.55), lineMat);
-    zebra.rotation.x = -Math.PI / 2;
-    zebra.position.set(pxToWorldX(935), 0.19, pyToWorldZ(992 + s * 6.2));
-    details3DGroup.add(zebra);
-  }
-
-  // 7. 校門口警衛室圓拱頂棚與直立校名石柱碑（嚴格對齊平面圖警衛室座標 px: 1016..1045, py: 874..932）
+  // 7. 校門口警衛室圓拱頂棚與兩側直立校名石柱碑（嚴格對齊平面圖警衛室 px: 1016..1045, py: 874..932 與大門入口）
   const guardCanopy = new THREE.Mesh(
     new THREE.CylinderGeometry(3.9, 3.9, 58 * SCALE, 16, 1, false, 0, Math.PI),
     new THREE.MeshStandardMaterial({ color: 0x8da2b5, roughness: 0.35, metalness: 0.35 })
@@ -1391,13 +1502,14 @@ function buildGateAndEastPlazaDetails() {
   guardCanopy.position.set(pxToWorldX(1030.5), 3.55, pyToWorldZ(903));
   details3DGroup.add(guardCanopy);
 
-  const gatePylon = new THREE.Mesh(
-    new THREE.BoxGeometry(1.65, 6.8, 1.85),
-    new THREE.MeshStandardMaterial({ color: 0xcac4b8, roughness: 0.72 })
-  );
-  gatePylon.position.set(pxToWorldX(1048), 3.4, pyToWorldZ(885));
+  const pylonMat = new THREE.MeshStandardMaterial({ color: 0xcac4b8, roughness: 0.72 });
+  const gatePylon = new THREE.Mesh(new THREE.BoxGeometry(1.65, 6.8, 1.85), pylonMat);
+  gatePylon.position.set(pxToWorldX(1048), 3.4, pyToWorldZ(895));
   gatePylon.castShadow = true;
-  details3DGroup.add(gatePylon);
+  const gatePylonSouth = new THREE.Mesh(new THREE.BoxGeometry(1.5, 4.6, 1.5), pylonMat);
+  gatePylonSouth.position.set(pxToWorldX(962), 2.3, pyToWorldZ(982));
+  gatePylonSouth.castShadow = true;
+  details3DGroup.add(gatePylon, gatePylonSouth);
 
   // 8. 活動中心青綠色斜屋頂（嚴格對齊平面圖活動中心座標 px: 1150..1300, py: 425..656，消除旋轉錯位）
   const acW = 150 * SCALE;
