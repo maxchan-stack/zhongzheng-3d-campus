@@ -2258,6 +2258,8 @@ function generateClassroom3DBlocks(buildingId, floorKey, highlightRoomId = null)
 
     roomLabelElements.push({
       id: r.id,
+      buildingId,
+      floorKey,
       el: rLabel,
       worldPos: new THREE.Vector3(rx, baseY + blockH + 1.1, rz),
       isSelected
@@ -2335,11 +2337,23 @@ function selectBuilding(buildingId, floorKey = 'ALL', highlightRoomId = null, fl
     item.el.classList.toggle('active', item.id === buildingId);
   });
 
+  if (window.innerWidth <= 1024) {
+    document.getElementById('left-dock')?.classList.add('mobile-collapsed');
+    const toggleBtn = document.getElementById('mobile-dock-toggle-btn');
+    if (toggleBtn) toggleBtn.textContent = '路線與導覽 ▴';
+    document.getElementById('programs-drawer')?.classList.remove('open');
+  }
+
   renderRightPanel(bObj.data, floorKey, highlightRoomId);
   applyFloorVisibility(buildingId, floorKey);
 
   if (flyCamera && state.viewMode === 'birdseye') {
     const targetPos = bObj.centerWorld.clone();
+    const isMobilePortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
+    if (isMobilePortrait) {
+      // 手機直向時底部抽屜占據下方約 42% 高度，將相機注視點往畫面下方推移，使建物落於上半部可視區中央
+      targetPos.z += 14;
+    }
     const offset = buildingId === 'eco_pond'
       ? new THREE.Vector3(-8, 66, 34)
       : new THREE.Vector3(35, Math.max(42, bObj.data.floors * 11), 52);
@@ -2479,6 +2493,14 @@ function focusOnRoom(buildingId, floorKey, roomId) {
 
   renderRightPanel(bObj.data, floorKey, roomId);
   applyFloorVisibility(buildingId, floorKey);
+
+  if (window.innerWidth <= 768) {
+    // 手機點選特定教室後自動收合底部配置面板，讓 3D 剖面與高亮教室完整呈現於視野中央
+    document.getElementById('right-panel')?.classList.add('collapsed');
+    document.getElementById('left-dock')?.classList.add('mobile-collapsed');
+    const toggleBtn = document.getElementById('mobile-dock-toggle-btn');
+    if (toggleBtn) toggleBtn.textContent = '路線與導覽 ▴';
+  }
 
   const targetMesh = roomMeshes.find((m) => m.userData.roomId === roomId);
   if (targetMesh) {
@@ -3035,9 +3057,16 @@ function updateFloatingLabels() {
 
   const rightPanelEl = document.getElementById('right-panel');
   const rightOpen = rightPanelEl && !rightPanelEl.classList.contains('collapsed');
+  const leftDockEl = document.getElementById('left-dock');
+  const leftDockExpanded = window.innerWidth <= 1024 && leftDockEl && !leftDockEl.classList.contains('mobile-collapsed');
+  const navVisible = document.getElementById('nav-status-bar')?.classList.contains('visible');
+  const progOpen = document.getElementById('programs-drawer')?.classList.contains('open');
   const reopenPill = document.getElementById('reopen-drawer-pill');
   if (reopenPill) {
-    reopenPill.classList.toggle('visible', !rightOpen && Boolean(state.selectedBuildingId) && state.viewMode === 'birdseye');
+    reopenPill.classList.toggle(
+      'visible',
+      !rightOpen && !leftDockExpanded && !navVisible && !progOpen && Boolean(state.selectedBuildingId) && state.viewMode === 'birdseye'
+    );
   }
 
   // 動態讀取當前畫面實際可見 UI 區塊的邊界盒，確保手機、平板與桌機皆精準避讓且不誤擋 3D 標籤
@@ -3167,6 +3196,8 @@ function updateFloatingLabels() {
       const cx = sx + ox;
       const cy = sy + oy;
       const rect = { l: cx - w / 2 - 4, r: cx + w / 2 + 4, t: cy - h - 4, b: cy + 4 };
+      const outOfBounds = rect.l < 6 || rect.r > window.innerWidth - 6 || rect.t < 6 || rect.b > window.innerHeight - 24;
+      if (outOfBounds) continue;
       const overlaps = placedRects.some(
         (pr) => !(rect.r < pr.l || rect.l > pr.r || rect.b < pr.t || rect.t > pr.b)
       );
@@ -3177,15 +3208,14 @@ function updateFloatingLabels() {
     }
 
     if (chosenOffset || item.id === state.selectedBuildingId) {
-      const finalPos = chosenOffset || { cx: sx, cy: sy, rect: { l: sx - w / 2, r: sx + w / 2, t: sy - h, b: sy } };
+      const clampedCx = Math.max(w / 2 + 8, Math.min(window.innerWidth - w / 2 - 8, sx));
+      const finalPos = chosenOffset || { cx: clampedCx, cy: sy, rect: { l: clampedCx - w / 2, r: clampedCx + w / 2, t: sy - h, b: sy } };
       placedRects.push(finalPos.rect);
       item.el.style.left = `${finalPos.cx}px`;
       item.el.style.top = `${finalPos.cy}px`;
       item.el.style.opacity = '1';
-      item.el.style.pointerEvents = 'auto';
     } else {
       item.el.style.opacity = '0';
-      item.el.style.pointerEvents = 'none';
       item.el.style.left = `${sx}px`;
       item.el.style.top = `${sy}px`;
     }
@@ -3675,20 +3705,22 @@ function setupUIAndInteractions() {
     showToast('已對齊正北方視角（前方 +X 為北投文林北路側）');
   });
 
-  // 滑鼠左鍵平移／旋轉切換
+  // 滑鼠左鍵與行動裝置單指拖曳：平移／旋轉切換
   const panModeBtn = document.getElementById('left-drag-pan-btn');
   const rotModeBtn = document.getElementById('left-drag-rot-btn');
   panModeBtn?.addEventListener('click', () => {
     controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
+    controls.touches.ONE = THREE.TOUCH.PAN;
     panModeBtn.classList.add('active');
     rotModeBtn?.classList.remove('active');
-    showToast('已切換為「左鍵拖曳平移地圖」');
+    showToast('已切換為「單指／左鍵拖曳平移地圖」');
   });
   rotModeBtn?.addEventListener('click', () => {
     controls.mouseButtons.LEFT = THREE.MOUSE.ROTATE;
+    controls.touches.ONE = THREE.TOUCH.ROTATE;
     rotModeBtn.classList.add('active');
     panModeBtn?.classList.remove('active');
-    showToast('已切換為「左鍵拖曳旋轉視角」');
+    showToast('已切換為「單指／左鍵拖曳旋轉視角」');
   });
 
   // 右上角十字方向平移與縮放按鈕
@@ -3773,6 +3805,7 @@ function setupUIAndInteractions() {
   const pointer = new THREE.Vector2();
   let downPos = { x: 0, y: 0 };
   let isDraggingLook = false;
+  let lookPointerId = null;
   let prevLook = { x: 0, y: 0 };
 
   renderer.domElement.addEventListener('pointerdown', (e) => {
@@ -3791,14 +3824,15 @@ function setupUIAndInteractions() {
         if (expBtn) expBtn.textContent = '操控 ▾';
       }
     }
-    if (state.viewMode === 'fpv') {
+    if (state.viewMode === 'fpv' && lookPointerId === null) {
       isDraggingLook = true;
+      lookPointerId = e.pointerId;
       prevLook = { x: e.clientX, y: e.clientY };
     }
   });
 
   window.addEventListener('pointermove', (e) => {
-    if (state.viewMode === 'fpv' && isDraggingLook) {
+    if (state.viewMode === 'fpv' && isDraggingLook && e.pointerId === lookPointerId) {
       const dx = e.clientX - prevLook.x;
       const dy = e.clientY - prevLook.y;
       prevLook = { x: e.clientX, y: e.clientY };
@@ -3810,9 +3844,30 @@ function setupUIAndInteractions() {
   });
 
   window.addEventListener('pointerup', (e) => {
-    isDraggingLook = false;
+    if (e.pointerId === lookPointerId) {
+      isDraggingLook = false;
+      lookPointerId = null;
+    }
     const moveDist = Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y);
-    if (moveDist > 6 || e.target !== renderer.domElement) return;
+    if (moveDist > 10 || e.target !== renderer.domElement) return;
+
+    // 1. 優先檢測是否點擊在可見的 3D 教室浮動標籤或建物浮動標籤上
+    for (const rItem of roomLabelElements) {
+      if (rItem.el.style.display === 'none' || rItem.el.style.opacity === '0') continue;
+      const rect = rItem.el.getBoundingClientRect();
+      if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+        focusOnRoom(rItem.buildingId, rItem.floorKey, rItem.id);
+        return;
+      }
+    }
+    for (const bItem of labelElements) {
+      if (bItem.el.style.opacity === '0') continue;
+      const rect = bItem.el.getBoundingClientRect();
+      if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+        selectBuilding(bItem.id, state.selectedFloor, null, state.viewMode === 'birdseye');
+        return;
+      }
+    }
 
     pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
     pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
@@ -3876,10 +3931,12 @@ function setupUIAndInteractions() {
   const joyZone = document.getElementById('joystick-zone');
   const joyKnob = document.getElementById('joystick-knob');
   let joyActive = false;
+  let joyPointerId = null;
 
   joyZone.addEventListener('pointerdown', (e) => {
     e.stopPropagation();
     joyActive = true;
+    joyPointerId = e.pointerId;
     if (state.viewMode !== 'fpv') setViewMode('fpv');
     state.autoWalking = false;
     state.fpv.targetWalkPoint = null;
@@ -3887,15 +3944,29 @@ function setupUIAndInteractions() {
   });
 
   window.addEventListener('pointermove', (e) => {
-    if (joyActive) updateJoystick(e);
+    if (joyActive && e.pointerId === joyPointerId) updateJoystick(e);
   });
 
-  window.addEventListener('pointerup', () => {
-    if (joyActive) {
+  window.addEventListener('pointerup', (e) => {
+    if (joyActive && e.pointerId === joyPointerId) {
       joyActive = false;
+      joyPointerId = null;
       state.fpv.joyX = 0;
       state.fpv.joyY = 0;
       joyKnob.style.transform = 'translate(0px, 0px)';
+    }
+  });
+  window.addEventListener('pointercancel', (e) => {
+    if (joyActive && e.pointerId === joyPointerId) {
+      joyActive = false;
+      joyPointerId = null;
+      state.fpv.joyX = 0;
+      state.fpv.joyY = 0;
+      joyKnob.style.transform = 'translate(0px, 0px)';
+    }
+    if (e.pointerId === lookPointerId) {
+      isDraggingLook = false;
+      lookPointerId = null;
     }
   });
 

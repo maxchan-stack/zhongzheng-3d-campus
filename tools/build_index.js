@@ -20,7 +20,7 @@ const html = `<!DOCTYPE html>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>臺北市立中正高級中學 3D 校園導覽系統 (115 學年度)</title>
-  <link rel="stylesheet" href="./css/style.css" />
+  <link rel="stylesheet" href="./css/style.css?v=20261101" />
   <style>${css}</style>
   <!-- Three.js Import Map 從 CDN 載入 -->
   <script type="importmap">
@@ -355,12 +355,12 @@ const html = `<!DOCTYPE html>
   </div>
 
   <!-- 載入獨立資料檔 (同時內嵌確保 file:// 雙擊 100% 離線可用) -->
-  <script src="./data/map_texture.js"></script>
-  <script src="./data/buildings.js"></script>
-  <script src="./data/classrooms.js"></script>
-  <script src="./data/road_network.js"></script>
-  <script src="./data/tours.js"></script>
-  <script src="./data/trees-data.js"></script>
+  <script src="./data/map_texture.js?v=20261101"></script>
+  <script src="./data/buildings.js?v=20261101"></script>
+  <script src="./data/classrooms.js?v=20261101"></script>
+  <script src="./data/road_network.js?v=20261101"></script>
+  <script src="./data/tours.js?v=20261101"></script>
+  <script src="./data/trees-data.js?v=20261101"></script>
   <script>
     if (!window.CAMPUS_MAP_TEXTURE) { ${mapTex} }
     if (!window.CAMPUS_BUILDINGS) { ${bldgs} }
