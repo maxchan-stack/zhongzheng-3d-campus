@@ -353,9 +353,104 @@ function buildAllBuildings() {
   });
 }
 
-const brickStudsGroup = new THREE.Group();
-brickStudsGroup.visible = false;
-scene.add(brickStudsGroup);
+let monetSkyMesh = null;
+function createMonetStarrySky() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // 莫內印象派調色：深靛藍、群青、紫羅蘭與松石綠筆觸夜空
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, 512);
+  bgGrad.addColorStop(0, '#060c18');
+  bgGrad.addColorStop(0.35, '#0c1a32');
+  bgGrad.addColorStop(0.70, '#16324d');
+  bgGrad.addColorStop(1.0, '#1e4854');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, 1024, 512);
+
+  // 印象派碎筆觸層疊（莫內經典睡蓮池／星夜筆觸質感）
+  const dabColors = [
+    'rgba(28, 64, 110, 0.45)',
+    'rgba(42, 98, 142, 0.40)',
+    'rgba(65, 138, 168, 0.35)',
+    'rgba(45, 95, 110, 0.35)',
+    'rgba(90, 80, 130, 0.30)',
+    'rgba(235, 205, 120, 0.22)',
+    'rgba(245, 230, 175, 0.28)'
+  ];
+
+  // 筆觸流動漩渦與波浪
+  for (let layer = 0; layer < 6; layer++) {
+    for (let i = 0; i < 900; i++) {
+      const x = Math.random() * 1024;
+      const y = Math.random() * 420;
+      const len = 12 + Math.random() * 26;
+      const angle = Math.sin(x * 0.008 + layer) * 0.45 + (Math.random() - 0.5) * 0.3;
+      ctx.strokeStyle = dabColors[Math.floor(Math.random() * dabColors.length)];
+      ctx.lineWidth = 2 + Math.random() * 3.5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len * 0.6);
+      ctx.stroke();
+    }
+  }
+
+  // 莫內星夜金色光環星芒與星辰
+  for (let s = 0; s < 45; s++) {
+    const sx = Math.random() * 1024;
+    const sy = 40 + Math.random() * 260;
+    const r = 3 + Math.random() * 9;
+
+    const starGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, r * 4.2);
+    starGrad.addColorStop(0, 'rgba(255, 250, 215, 0.95)');
+    starGrad.addColorStop(0.25, 'rgba(248, 215, 110, 0.65)');
+    starGrad.addColorStop(0.55, 'rgba(120, 180, 210, 0.35)');
+    starGrad.addColorStop(1, 'rgba(16, 32, 60, 0)');
+    ctx.fillStyle = starGrad;
+    ctx.beginPath();
+    ctx.arc(sx, sy, r * 4.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 星芒筆觸同心短弧
+    ctx.strokeStyle = 'rgba(255, 238, 160, 0.55)';
+    ctx.lineWidth = 1.6;
+    for (let a = 0; a < Math.PI * 2; a += 0.8) {
+      ctx.beginPath();
+      ctx.arc(sx, sy, r * 1.8, a, a + 0.5);
+      ctx.stroke();
+    }
+  }
+
+  // 印象派金黃柔光月暈
+  const mx = 820, my = 110;
+  const moonGrad = ctx.createRadialGradient(mx, my, 0, mx, my, 85);
+  moonGrad.addColorStop(0, 'rgba(255, 252, 235, 1)');
+  moonGrad.addColorStop(0.2, 'rgba(255, 228, 140, 0.85)');
+  moonGrad.addColorStop(0.5, 'rgba(235, 185, 90, 0.45)');
+  moonGrad.addColorStop(1, 'rgba(20, 45, 80, 0)');
+  ctx.fillStyle = moonGrad;
+  ctx.beginPath();
+  ctx.arc(mx, my, 85, 0, Math.PI * 2);
+  ctx.fill();
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = THREE.RepeatWrapping;
+
+  const skyGeo = new THREE.SphereGeometry(1800, 32, 20);
+  const skyMat = new THREE.MeshBasicMaterial({
+    map: tex,
+    side: THREE.BackSide,
+    fog: false,
+    depthWrite: false
+  });
+  const skyMesh = new THREE.Mesh(skyGeo, skyMat);
+  skyMesh.visible = false;
+  scene.add(skyMesh);
+  return skyMesh;
+}
 
 const roadLabelElements = [];
 
@@ -1163,23 +1258,93 @@ function buildSurroundingSkyline() {
   });
 
   // 3. 更遠方西南位置 (-X 南方、-Z 西方) 之兒童新樂園摩天輪 (px: -480, py: -380)
+  // 完整渲染：中央旋轉軸心、雙層外圈鋼骨、24 根放射狀輻條支架、A 字型支撐立柱與 24 個彩虹漸層色彩車廂 (Gondolas)
   const wheelX = pxToWorldX(-480);
   const wheelZ = pyToWorldZ(-380);
-  const wheelRim = new THREE.Mesh(
-    new THREE.TorusGeometry(28, 0.95, 12, 36),
-    new THREE.MeshStandardMaterial({ color: 0xf4f6f8, roughness: 0.4 })
-  );
-  wheelRim.position.set(wheelX, 38, wheelZ);
-  wheelRim.rotation.y = 0.45;
-  details3DGroup.add(wheelRim);
+  const wheelCenterY = 46.0;
+  const wheelRadius = 32.0;
+  const wheelGroup = new THREE.Group();
+  wheelGroup.position.set(wheelX, wheelCenterY, wheelZ);
+  wheelGroup.rotation.y = 0.42;
 
-  const legMat = new THREE.MeshStandardMaterial({ color: 0x90a4ae, metalness: 0.4 });
-  [-1, 1].forEach((dir) => {
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.95, 42, 8), legMat);
-    leg.position.set(wheelX + dir * 10, 19, wheelZ);
-    leg.rotation.z = dir * 0.26;
-    details3DGroup.add(leg);
+  const steelMat = new THREE.MeshStandardMaterial({ color: 0xf5f7fa, metalness: 0.35, roughness: 0.3 });
+  const hubMat = new THREE.MeshStandardMaterial({ color: 0x2471a3, metalness: 0.4, roughness: 0.3 });
+
+  // 雙層外圈鋼環 (外環與內環)
+  const outerRim = new THREE.Mesh(new THREE.TorusGeometry(wheelRadius, 0.55, 10, 48), steelMat);
+  const innerRim = new THREE.Mesh(new THREE.TorusGeometry(wheelRadius * 0.82, 0.42, 8, 48), steelMat);
+  wheelGroup.add(outerRim, innerRim);
+
+  // 中央主軸轂心
+  const centerHub = new THREE.Mesh(new THREE.CylinderGeometry(2.8, 2.8, 2.6, 18), hubMat);
+  centerHub.rotation.x = Math.PI / 2;
+  wheelGroup.add(centerHub);
+
+  // 24 根放射鋼構輻條 (Spokes) 與 24 座彩虹車廂
+  const spokeMat = new THREE.MeshStandardMaterial({ color: 0xdde4eb, roughness: 0.4 });
+  const gondolaCount = 24;
+  for (let i = 0; i < gondolaCount; i++) {
+    const angle = (i / gondolaCount) * Math.PI * 2;
+    const cosA = Math.cos(angle);
+    const sinA = Math.sin(angle);
+
+    // 鋼構輻條
+    const spoke = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, wheelRadius, 6), spokeMat);
+    spoke.position.set((wheelRadius / 2) * cosA, (wheelRadius / 2) * sinA, 0);
+    spoke.rotation.z = angle - Math.PI / 2;
+    wheelGroup.add(spoke);
+
+    // 環間桁架交叉斜撐
+    const crossBar = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, wheelRadius * 0.18), spokeMat);
+    crossBar.position.set((wheelRadius * 0.91) * cosA, (wheelRadius * 0.91) * sinA, 0);
+    wheelGroup.add(crossBar);
+
+    // 24 個彩虹漸層顏色車廂 (紅、橙、黃、綠、藍、靛、紫光譜平滑循環)
+    const hue = (i / gondolaCount);
+    const cabColor = new THREE.Color().setHSL(hue, 0.92, 0.54);
+    const gondolaMat = new THREE.MeshStandardMaterial({ color: cabColor, roughness: 0.28, metalness: 0.2 });
+
+    const gondola = new THREE.Group();
+    gondola.position.set(wheelRadius * cosA, wheelRadius * sinA, 0);
+
+    // 車廂主艙體 (六角柱圓頂流線觀景艙)
+    const cabin = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.25, 2.4, 8), gondolaMat);
+    cabin.position.y = -1.2;
+    gondola.add(cabin);
+
+    // 觀景窗橫條玻璃環
+    const windowMat = new THREE.MeshStandardMaterial({ color: 0x1a2e40, roughness: 0.1, metalness: 0.8 });
+    const cabinWindow = new THREE.Mesh(new THREE.CylinderGeometry(1.36, 1.30, 0.9, 8), windowMat);
+    cabinWindow.position.y = -1.15;
+    gondola.add(cabinWindow);
+
+    // 吊掛桿臂
+    const hanger = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1.1, 6), steelMat);
+    hanger.position.y = -0.55;
+    gondola.add(hanger);
+
+    wheelGroup.add(gondola);
+  }
+  details3DGroup.add(wheelGroup);
+
+  // A 字型雙向四柱斜向主支架與基座
+  const legMat = new THREE.MeshStandardMaterial({ color: 0x78909c, metalness: 0.45, roughness: 0.35 });
+  const baseMat = new THREE.MeshStandardMaterial({ color: 0x546e7a, roughness: 0.7 });
+  [-1, 1].forEach((dirX) => {
+    [-1, 1].forEach((dirZ) => {
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.68, 1.15, wheelCenterY + 4, 8), legMat);
+      leg.position.set(wheelX + dirX * 11.5, wheelCenterY / 2, wheelZ + dirZ * 5.2);
+      leg.rotation.z = -dirX * 0.24;
+      leg.rotation.x = dirZ * 0.11;
+      details3DGroup.add(leg);
+    });
   });
+
+  // 支架底座承台
+  const wheelBase = new THREE.Mesh(new THREE.BoxGeometry(32, 2.5, 18), baseMat);
+  wheelBase.position.set(wheelX, 1.25, wheelZ);
+  wheelBase.rotation.y = 0.42;
+  details3DGroup.add(wheelBase);
 }
 
 function buildRoofSolarAndBrickStuds() {
@@ -2654,7 +2819,7 @@ function setVisualTheme(theme) {
   state.isNight = (theme === 'night');
   document.body.classList.toggle('night-mode', state.isNight);
 
-  const labelMap = { day: '晴空寫實', pixel: '像素冒險', brick: '微縮積木', night: '星夜光影' };
+  const labelMap = { day: '晴空寫實', pixel: '像素冒險', brick: '微縮積木', night: '星夜光彩' };
   const labelEl = document.getElementById('theme-menu-label');
   if (labelEl) labelEl.textContent = labelMap[theme] || '晴空寫實';
 
@@ -2673,12 +2838,18 @@ function setVisualTheme(theme) {
 
   brickStudsGroup.visible = (theme === 'brick');
 
-  const skyHex = state.isNight ? 0x0f1722 : (theme === 'brick' ? 0xcde6f5 : 0xc8dff5);
+  // 莫內星夜天空球切換
+  if (!monetSkyMesh) monetSkyMesh = createMonetStarrySky();
+  monetSkyMesh.visible = state.isNight;
+
+  const skyHex = state.isNight ? 0x081326 : (theme === 'brick' ? 0xcde6f5 : 0xc8dff5);
   scene.background.setHex(skyHex);
-  scene.fog.color.setHex(skyHex);
-  hemiLight.intensity = state.isNight ? 0.25 : 0.88;
-  dirLight.intensity = state.isNight ? 0.22 : 1.18;
-  dirLight.color.setHex(state.isNight ? 0x90b4e8 : 0xfff8e7);
+  scene.fog.color.setHex(state.isNight ? 0x0a1628 : skyHex);
+  scene.fog.density = state.isNight ? 0.0006 : 0.0013;
+  hemiLight.intensity = state.isNight ? 0.45 : 0.88;
+  hemiLight.color.setHex(state.isNight ? 0x90b8f0 : 0xffffff);
+  dirLight.intensity = state.isNight ? 0.35 : 1.18;
+  dirLight.color.setHex(state.isNight ? 0xffea9f : 0xfff8e7);
   nightLightsGroup.visible = state.isNight;
 
   buildingMeshes.forEach((m) => {

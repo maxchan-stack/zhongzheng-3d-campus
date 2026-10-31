@@ -432,6 +432,9 @@ def generate_eco_pond_forest() -> list[Tree]:
         # (D) 校園平面圖中正樓東側補齊綠樹與裝置藝術中央綠島植栽（對齊平面圖 px=972 與 px=1048）
         (972, 668, 5.2, 1), (972, 722, 5.2, 1),
         (1048, 556, 6.2, 1), (1048, 598, 6.5, 2), (1048, 640, 6.2, 1), (1048, 682, 6.5, 2),
+        # (E) 西邊洲美街沿著校區圍牆種滿雙排行道樹 (px: -40..1380, py: -85 & -50)
+        *[(px, -85, 14.5, 2) for px in range(-30, 1370, 36)],
+        *[(px, -50, 13.8, 1 if (px // 36) % 2 == 0 else 3) for px in range(-12, 1360, 36)],
     ]
     for bx, by, br, btone in banyan_grove:
         forest.append(Tree(px=bx, py=by, r=br, tone=btone))
