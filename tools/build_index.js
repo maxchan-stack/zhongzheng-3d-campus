@@ -87,7 +87,7 @@ const html = `<!DOCTYPE html>
   </header>
 
   <!-- 右上角：3D 動態方位羅盤指北針 + 滑鼠左鍵模式切換 + 十字方向平移縮放控制盤 -->
-  <div id="compass-box">
+  <div id="compass-box" class="mobile-compact">
     <button type="button" id="compass-reset-btn" title="點擊回正北方視角（平面圖右方 +X 為北方）">
       <div id="compass-dial">
         <span class="c-dir c-n">北N</span>
@@ -101,31 +101,35 @@ const html = `<!DOCTYPE html>
       </div>
     </button>
     <div class="compass-caption" id="compass-heading-txt">北方：文林北路側 (+X)</div>
+    <button type="button" id="compass-expand-btn" class="mobile-only-btn" title="展開或收合方向操控盤">操控 ▾</button>
 
-    <div class="mouse-mode-switch" role="group" aria-label="滑鼠左鍵拖曳模式">
-      <button type="button" id="left-drag-pan-btn" class="m-mode-btn" title="按住左鍵拖曳平移畫面">左鍵平移</button>
-      <button type="button" id="left-drag-rot-btn" class="m-mode-btn active" title="按住左鍵拖曳 360 度旋轉視角">左鍵旋轉</button>
-    </div>
+    <div class="compass-extra-controls">
+      <div class="mouse-mode-switch" role="group" aria-label="滑鼠左鍵或單指拖曳模式">
+        <button type="button" id="left-drag-pan-btn" class="m-mode-btn" title="按住拖曳平移畫面">平移</button>
+        <button type="button" id="left-drag-rot-btn" class="m-mode-btn active" title="按住拖曳 360 度旋轉視角">旋轉</button>
+      </div>
 
-    <div class="pan-dpad-grid" role="group" aria-label="畫面平移與縮放控制">
-      <span></span>
-      <button type="button" class="pan-btn" data-pan="up" title="畫面往前平移">▲</button>
-      <span></span>
-      <button type="button" class="pan-btn" data-pan="left" title="畫面往左平移">◀</button>
-      <button type="button" class="pan-btn home" id="pan-home-btn" title="回到最佳全覽">全覽</button>
-      <button type="button" class="pan-btn" data-pan="right" title="畫面往右平移">▶</button>
-      <button type="button" class="pan-btn" data-pan="zoomIn" title="放大視角">＋</button>
-      <button type="button" class="pan-btn" data-pan="down" title="畫面往後平移">▼</button>
-      <button type="button" class="pan-btn" data-pan="zoomOut" title="縮小視角">－</button>
+      <div class="pan-dpad-grid" role="group" aria-label="畫面平移與縮放控制">
+        <span></span>
+        <button type="button" class="pan-btn" data-pan="up" title="畫面往前平移">▲</button>
+        <span></span>
+        <button type="button" class="pan-btn" data-pan="left" title="畫面往左平移">◀</button>
+        <button type="button" class="pan-btn home" id="pan-home-btn" title="回到最佳全覽">全覽</button>
+        <button type="button" class="pan-btn" data-pan="right" title="畫面往右平移">▶</button>
+        <button type="button" class="pan-btn" data-pan="zoomIn" title="放大視角">＋</button>
+        <button type="button" class="pan-btn" data-pan="down" title="畫面往後平移">▼</button>
+        <button type="button" class="pan-btn" data-pan="zoomOut" title="縮小視角">－</button>
+      </div>
     </div>
   </div>
 
   <!-- 左側功能面板：樓層切換、A* 路線規劃、精選導覽、小地圖 -->
-  <aside id="left-dock">
-    <div class="dock-card">
+  <aside id="left-dock" class="mobile-collapsed">
+    <div class="dock-card floor-dock-card">
       <div class="section-header">
         <h2>樓層剖面切換</h2>
-        <span>每層高 3.6m · 選層自動展開教室</span>
+        <span class="desktop-only-hint">每層高 3.6m · 選層自動展開教室</span>
+        <button type="button" id="mobile-dock-toggle-btn" class="mobile-dock-toggle">路線與導覽 ▴</button>
       </div>
       <div class="floor-switcher">
         <button class="floor-btn active" data-floor="ALL">全棟</button>
@@ -138,7 +142,7 @@ const html = `<!DOCTYPE html>
       </div>
     </div>
 
-    <div class="dock-card">
+    <div class="dock-card tools-dock-card" id="tools-dock-card">
       <div class="dock-tabs">
         <button class="tab-btn active" data-tab="tab-route">路線規劃 (A*)</button>
         <button class="tab-btn" data-tab="tab-tours">精選導覽</button>

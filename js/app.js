@@ -74,8 +74,34 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xdbe7e0);
 scene.fog = new THREE.FogExp2(0xdbe7e0, 0.0013);
 
-const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.5, 2200);
-camera.position.set(0, 185, 195);
+function getResponsiveOverviewCamera() {
+  const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+  if (aspect < 0.72) {
+    // 手機直向：擴大視角並拉遠相機，使全校東西向跑道與活動中心完整納入窄螢幕
+    return {
+      fov: 56,
+      pos: new THREE.Vector3(-4, 248, 258),
+      target: new THREE.Vector3(6, 0, 12)
+    };
+  }
+  if (aspect < 1.12) {
+    // 平板直向或方形視窗
+    return {
+      fov: 52,
+      pos: new THREE.Vector3(-2, 212, 222),
+      target: new THREE.Vector3(8, 0, 15)
+    };
+  }
+  return {
+    fov: 48,
+    pos: new THREE.Vector3(0, 185, 195),
+    target: new THREE.Vector3(10, 0, 18)
+  };
+}
+
+const initCamCfg = getResponsiveOverviewCamera();
+const camera = new THREE.PerspectiveCamera(initCamCfg.fov, window.innerWidth / window.innerHeight, 0.5, 2200);
+camera.position.copy(initCamCfg.pos);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -89,8 +115,8 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.07;
 controls.maxPolarAngle = Math.PI / 2 - 0.03;
 controls.minDistance = 8;
-controls.maxDistance = 420;
-controls.target.set(10, 0, 18);
+controls.maxDistance = 450;
+controls.target.copy(initCamCfg.target);
 controls.addEventListener('change', () => { state.needsRender = true; });
 
 const hemiLight = new THREE.HemisphereLight(0xffffff, 0x8ea895, 0.85);
@@ -2794,6 +2820,12 @@ function setViewMode(mode) {
   if (isFpv) {
     controls.enabled = false;
     document.getElementById('nav-status-bar')?.classList.remove('visible');
+    if (window.innerWidth <= 768) {
+      const walkBar = document.getElementById('walk-hud-bar');
+      walkBar?.classList.add('minimized');
+      const colBtn = document.getElementById('walk-hud-collapse-btn');
+      if (colBtn) colBtn.textContent = '展開面板';
+    }
     const startX = state.activeRoute ? state.activeRoute.pathNodes[0].wx : pxToWorldX(1005);
     const startZ = state.activeRoute ? state.activeRoute.pathNodes[0].wz : pyToWorldZ(915);
     state.fpv.pos.set(startX, 1.72, startZ);
@@ -2889,16 +2921,32 @@ function updateFloatingLabels() {
   const halfH = window.innerHeight / 2;
   const placedRects = [];
 
-  const rightOpen = !document.getElementById('right-panel').classList.contains('collapsed');
+  const rightPanelEl = document.getElementById('right-panel');
+  const rightOpen = rightPanelEl && !rightPanelEl.classList.contains('collapsed');
   const reopenPill = document.getElementById('reopen-drawer-pill');
   if (reopenPill) {
     reopenPill.classList.toggle('visible', !rightOpen && Boolean(state.selectedBuildingId) && state.viewMode === 'birdseye');
   }
 
-  placedRects.push({ l: 0, r: window.innerWidth, t: 0, b: 74 });
-  placedRects.push({ l: 0, r: 350, t: 74, b: window.innerHeight });
-  if (rightOpen) {
-    placedRects.push({ l: window.innerWidth - 415, r: window.innerWidth, t: 70, b: window.innerHeight });
+  // 動態讀取當前畫面實際可見 UI 區塊的邊界盒，確保手機、平板與桌機皆精準避讓且不誤擋 3D 標籤
+  const uiBlockingEls = [
+    document.getElementById('top-bar'),
+    document.getElementById('left-dock'),
+    document.getElementById('compass-box'),
+    rightOpen ? rightPanelEl : null,
+    document.getElementById('programs-drawer')?.classList.contains('open') ? document.getElementById('programs-drawer') : null,
+    document.getElementById('walk-hud-bar')?.classList.contains('visible') ? document.getElementById('walk-hud-bar') : null,
+    document.getElementById('nav-status-bar')?.classList.contains('visible') ? document.getElementById('nav-status-bar') : null
+  ];
+
+  for (const el of uiBlockingEls) {
+    if (!el) continue;
+    const style = window.getComputedStyle(el);
+    if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') continue;
+    const r = el.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) {
+      placedRects.push({ l: r.left - 4, r: r.right + 4, t: r.top - 4, b: r.bottom + 4 });
+    }
   }
 
   // 周邊道路與方位 3D 標籤投影
@@ -3317,9 +3365,21 @@ function setupUIAndInteractions() {
     });
   }
 
-  document.getElementById('btn-calc-route').addEventListener('click', triggerRouteCalculation);
+  document.getElementById('btn-calc-route').addEventListener('click', () => {
+    triggerRouteCalculation();
+    if (window.innerWidth <= 1024) {
+      document.getElementById('left-dock')?.classList.add('mobile-collapsed');
+      const toggleBtn = document.getElementById('mobile-dock-toggle-btn');
+      if (toggleBtn) toggleBtn.textContent = '路線與導覽 ▴';
+    }
+  });
   document.getElementById('btn-walk-route').addEventListener('click', () => {
     if (!state.activeRoute) triggerRouteCalculation();
+    if (window.innerWidth <= 1024) {
+      document.getElementById('left-dock')?.classList.add('mobile-collapsed');
+      const toggleBtn = document.getElementById('mobile-dock-toggle-btn');
+      if (toggleBtn) toggleBtn.textContent = '路線與導覽 ▴';
+    }
     setViewMode('fpv');
     startRouteAutoWalk();
   });
@@ -3400,6 +3460,11 @@ function setupUIAndInteractions() {
       }
       const details = computeRouteDetails(fullPath);
       renderRoute3D(details);
+      if (window.innerWidth <= 1024) {
+        document.getElementById('left-dock')?.classList.add('mobile-collapsed');
+        const toggleBtn = document.getElementById('mobile-dock-toggle-btn');
+        if (toggleBtn) toggleBtn.textContent = '路線與導覽 ▴';
+      }
       startRouteAutoWalk();
     });
 
@@ -3445,12 +3510,40 @@ function setupUIAndInteractions() {
 
   document.getElementById('btn-reset-cam').addEventListener('click', () => {
     if (state.viewMode !== 'birdseye') setViewMode('birdseye');
-    camera.fov = 48;
+    const cfg = getResponsiveOverviewCamera();
+    camera.fov = cfg.fov;
     camera.updateProjectionMatrix();
     document.getElementById('btn-reset-cam')?.classList.add('active');
     applyFloorVisibility(null, 'ALL');
     document.getElementById('right-panel').classList.add('collapsed');
-    animateCameraTo(new THREE.Vector3(0, 185, 195), new THREE.Vector3(10, 0, 18));
+    document.getElementById('left-dock')?.classList.add('mobile-collapsed');
+    const toggleBtn = document.getElementById('mobile-dock-toggle-btn');
+    if (toggleBtn) toggleBtn.textContent = '路線與導覽 ▴';
+    animateCameraTo(cfg.pos, cfg.target);
+  });
+
+  // 行動裝置底部「路線與導覽」面板展開／收合切換
+  const mobileDockToggleBtn = document.getElementById('mobile-dock-toggle-btn');
+  mobileDockToggleBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const dock = document.getElementById('left-dock');
+    if (!dock) return;
+    const isCollapsed = dock.classList.toggle('mobile-collapsed');
+    mobileDockToggleBtn.textContent = isCollapsed ? '路線與導覽 ▴' : '收合面板 ▾';
+    if (!isCollapsed) {
+      document.getElementById('right-panel')?.classList.add('collapsed');
+      document.getElementById('programs-drawer')?.classList.remove('open');
+    }
+  });
+
+  // 行動裝置右上角羅盤十字操控盤展開／收合切換
+  const compassExpandBtn = document.getElementById('compass-expand-btn');
+  compassExpandBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const box = document.getElementById('compass-box');
+    if (!box) return;
+    const isCompact = box.classList.toggle('mobile-compact');
+    compassExpandBtn.textContent = isCompact ? '操控 ▾' : '收合 ▴';
   });
 
   document.getElementById('panel-close').addEventListener('click', () => {
@@ -3572,6 +3665,20 @@ function setupUIAndInteractions() {
 
   renderer.domElement.addEventListener('pointerdown', (e) => {
     downPos = { x: e.clientX, y: e.clientY };
+    if (window.innerWidth <= 1024) {
+      const dock = document.getElementById('left-dock');
+      if (dock && !dock.classList.contains('mobile-collapsed')) {
+        dock.classList.add('mobile-collapsed');
+        const toggleBtn = document.getElementById('mobile-dock-toggle-btn');
+        if (toggleBtn) toggleBtn.textContent = '路線與導覽 ▴';
+      }
+      const cBox = document.getElementById('compass-box');
+      if (cBox && !cBox.classList.contains('mobile-compact')) {
+        cBox.classList.add('mobile-compact');
+        const expBtn = document.getElementById('compass-expand-btn');
+        if (expBtn) expBtn.textContent = '操控 ▾';
+      }
+    }
     if (state.viewMode === 'fpv') {
       isDraggingLook = true;
       prevLook = { x: e.clientX, y: e.clientY };

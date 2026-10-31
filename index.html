@@ -1081,60 +1081,17 @@ body.night-mode .ctrl-btn.active {
   opacity: 1;
 }
 
-/* 手機版響應式介面 (RWD) */
-@media (max-width: 900px) {
-  #top-bar {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .top-brand {
-    padding: 6px 10px;
-  }
-  .brand-text p {
-    display: none;
-  }
-  .search-wrapper {
-    order: 3;
-    max-width: 100%;
-    flex: 1 1 100%;
-  }
-  #left-dock {
-    top: auto;
-    bottom: 10px;
-    left: 10px;
-    right: 10px;
-    width: auto;
-    max-height: 44vh;
-  }
-  #minimap-card {
-    display: none;
-  }
-  #right-panel {
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: 56vh;
-    border-radius: 16px 16px 0 0;
-    z-index: 35;
-  }
-  #right-panel.collapsed {
-    transform: translateY(105%);
-  }
-  #joystick-zone {
-    display: none;
-    bottom: 85px;
-    left: 20px;
-    width: 96px;
-    height: 96px;
-  }
-  body.fpv-mode #joystick-zone {
-    display: block;
-  }
-  body.fpv-mode #left-dock {
-    display: none;
-  }
+/* 桌機預設隱藏行動裝置專用展開按鈕 */
+.mobile-only-btn,
+.mobile-dock-toggle {
+  display: none;
+}
+
+.compass-extra-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
 }
 
 /* === 新增功能樣式：載入畫面、視覺風格選單、3D 動態羅盤與操控盤、第三人稱角色漫步、特色班群導覽、底部導航列 === */
@@ -1793,6 +1750,390 @@ body.panel-open #compass-box {
 .modal-box ul {
   padding-left: 18px;
 }
+
+/* =========================================================================
+   跨行動載具自適應響應式設計 (Adaptive Mobile & Tablet UI/UX)
+   支援：平板 (<= 1024px)、手機直向 (<= 768px)、小螢幕手機 (<= 420px)、手機橫向 (max-height: 540px)
+   ========================================================================= */
+
+@media (max-width: 1024px) {
+  #top-bar {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .top-brand {
+    padding: 5px 10px;
+    gap: 7px;
+    flex-shrink: 0;
+  }
+
+  .brand-mark {
+    width: 26px;
+    height: 26px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+
+  .brand-text h1 {
+    font-size: 13.5px;
+  }
+
+  .brand-text p {
+    display: none;
+  }
+
+  /* 搜尋框與品牌列同行排列，節省頂部垂直空間 */
+  .search-wrapper {
+    order: 2;
+    flex: 1 1 160px;
+    max-width: none;
+    min-width: 140px;
+  }
+
+  .search-box {
+    padding: 5px 10px;
+    gap: 6px;
+  }
+
+  .search-box input {
+    font-size: 12px;
+  }
+
+  /* 第二行功能鍵：自動彈性滿版、不超出螢幕寬度 */
+  .top-controls {
+    order: 3;
+    width: 100%;
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 3px;
+    gap: 3px;
+    overflow: visible;
+  }
+
+  .ctrl-btn {
+    flex: 1 1 auto;
+    text-align: center;
+    padding: 5px 5px;
+    font-size: 11px;
+    border-radius: 6px;
+  }
+
+  .theme-dropdown {
+    flex: 1 1 auto;
+    display: flex;
+  }
+
+  .theme-dropdown > .ctrl-btn {
+    width: 100%;
+  }
+
+  /* 右上角羅盤精簡化：預設收合十字鍵，僅占極小右上角面積，點擊「操控」可展開 */
+  #compass-box {
+    top: 88px;
+    right: 8px;
+    width: 64px;
+    padding: 6px;
+    gap: 4px;
+    z-index: 16;
+  }
+
+  body.panel-open #compass-box {
+    right: 8px;
+  }
+
+  #compass-box:not(.mobile-compact) {
+    width: 128px;
+    padding: 8px;
+  }
+
+  #compass-dial {
+    width: 44px;
+    height: 44px;
+  }
+
+  .c-dir {
+    font-size: 8.5px;
+  }
+
+  .c-needle {
+    width: 6px;
+    height: 24px;
+  }
+
+  .compass-caption {
+    display: none;
+  }
+
+  .mobile-only-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    border: 1px solid var(--border-color);
+    background: var(--bg-subtle);
+    color: var(--text-main);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 4px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  #compass-box.mobile-compact .compass-extra-controls {
+    display: none;
+  }
+
+  /* 左側面板轉為底部可收合抽屜：預設僅顯示單行「樓層膠囊 + 路線與導覽展開鈕」，釋放 82% 以上 3D 視野 */
+  #left-dock {
+    top: auto;
+    bottom: 26px;
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-height: none;
+    gap: 6px;
+    z-index: 18;
+  }
+
+  .desktop-only-hint {
+    display: none;
+  }
+
+  .floor-dock-card {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  .mobile-dock-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: none;
+    background: var(--accent);
+    color: #ffffff;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .floor-switcher {
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+
+  .floor-btn {
+    min-width: 0;
+    padding: 5px 2px;
+    font-size: 11.5px;
+  }
+
+  /* 當處於 mobile-collapsed 時，隱藏下方 A* 路線與導覽大面板 */
+  #left-dock.mobile-collapsed .tools-dock-card {
+    display: none;
+  }
+
+  #left-dock:not(.mobile-collapsed) .tools-dock-card {
+    display: flex;
+    max-height: 46vh;
+    overflow-y: auto;
+    padding: 10px 12px;
+  }
+
+  .tab-pane {
+    max-height: 34vh;
+  }
+
+  #minimap-card {
+    display: none;
+  }
+
+  /* 右側大樓詳情與樓層配置表轉為底部滑出面板 (Bottom Sheet) */
+  #right-panel {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 52vh;
+    border-radius: 16px 16px 0 0;
+    z-index: 35;
+  }
+
+  #right-panel.collapsed {
+    transform: translateY(105%);
+    opacity: 0;
+  }
+
+  /* 手機版樓層配置表支援橫向觸控滑動，避免格子擠壓變形 */
+  .pdf-rooms-strip {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pdf-room-cell {
+    min-width: 52px;
+    font-size: 10.5px;
+  }
+
+  /* 特色班群抽屜自適應滿版底部滑出 */
+  #programs-drawer {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 62vh;
+    border-radius: 16px 16px 0 0;
+    z-index: 36;
+  }
+
+  /* 浮動標籤在行動裝置上微調緊湊度 */
+  .map-label {
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+
+  .road-3d-label {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  /* 地面漫步模式 HUD 與虛擬搖桿互不遮擋 */
+  body.fpv-mode #left-dock {
+    display: none;
+  }
+
+  #joystick-zone {
+    display: none;
+    bottom: 34px;
+    left: 12px;
+    width: 92px;
+    height: 92px;
+  }
+
+  body.fpv-mode #joystick-zone {
+    display: block;
+  }
+
+  #walk-hud-bar {
+    bottom: 28px;
+    left: 112px;
+    right: 8px;
+    transform: none;
+    width: auto;
+    max-width: calc(100vw - 120px);
+    padding: 7px 9px;
+    gap: 5px;
+  }
+
+  .walk-head-title {
+    display: none;
+  }
+
+  .char-chip {
+    padding: 4px 7px;
+    font-size: 11px;
+  }
+
+  .w-btn {
+    padding: 5px 7px;
+    font-size: 11px;
+  }
+
+  /* 導航進度列自適應 */
+  #nav-status-bar {
+    bottom: 92px;
+    width: calc(100vw - 16px);
+    padding: 8px 10px;
+  }
+
+  #reopen-drawer-pill {
+    bottom: 96px;
+    right: 10px;
+    padding: 6px 12px;
+    font-size: 11.5px;
+  }
+
+  /* 底部版權列精簡為單行 */
+  #campus-footer {
+    height: 22px;
+    padding: 0 10px;
+    font-size: 10px;
+  }
+
+  #campus-footer > span:first-child {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 52%;
+  }
+}
+
+/* 小尺寸手機直向微調 (<= 480px) */
+@media (max-width: 480px) {
+  .brand-text h1 {
+    font-size: 12.5px;
+  }
+
+  .ctrl-btn {
+    font-size: 11px;
+    padding: 5px 4px;
+  }
+
+  #campus-footer > span:first-child {
+    display: none;
+  }
+
+  #campus-footer {
+    justify-content: center;
+  }
+}
+
+/* 手機橫向模式 (Landscape Mobile: max-height 540px) */
+@media (max-height: 540px) and (orientation: landscape) {
+  #top-bar {
+    flex-wrap: nowrap;
+  }
+
+  .search-wrapper {
+    order: 2;
+    max-width: 210px;
+  }
+
+  .top-controls {
+    order: 3;
+    width: auto;
+  }
+
+  #compass-box {
+    top: 54px;
+  }
+
+  #left-dock {
+    left: 8px;
+    right: auto;
+    width: 310px;
+    bottom: 24px;
+  }
+
+  #right-panel {
+    top: 52px;
+    bottom: 24px;
+    left: auto;
+    right: 8px;
+    width: 340px;
+    height: auto;
+    border-radius: 12px;
+  }
+}
 </style>
   <!-- Three.js Import Map 從 CDN 載入 -->
   <script type="importmap">
@@ -1859,7 +2200,7 @@ body.panel-open #compass-box {
   </header>
 
   <!-- 右上角：3D 動態方位羅盤指北針 + 滑鼠左鍵模式切換 + 十字方向平移縮放控制盤 -->
-  <div id="compass-box">
+  <div id="compass-box" class="mobile-compact">
     <button type="button" id="compass-reset-btn" title="點擊回正北方視角（平面圖右方 +X 為北方）">
       <div id="compass-dial">
         <span class="c-dir c-n">北N</span>
@@ -1873,31 +2214,35 @@ body.panel-open #compass-box {
       </div>
     </button>
     <div class="compass-caption" id="compass-heading-txt">北方：文林北路側 (+X)</div>
+    <button type="button" id="compass-expand-btn" class="mobile-only-btn" title="展開或收合方向操控盤">操控 ▾</button>
 
-    <div class="mouse-mode-switch" role="group" aria-label="滑鼠左鍵拖曳模式">
-      <button type="button" id="left-drag-pan-btn" class="m-mode-btn" title="按住左鍵拖曳平移畫面">左鍵平移</button>
-      <button type="button" id="left-drag-rot-btn" class="m-mode-btn active" title="按住左鍵拖曳 360 度旋轉視角">左鍵旋轉</button>
-    </div>
+    <div class="compass-extra-controls">
+      <div class="mouse-mode-switch" role="group" aria-label="滑鼠左鍵或單指拖曳模式">
+        <button type="button" id="left-drag-pan-btn" class="m-mode-btn" title="按住拖曳平移畫面">平移</button>
+        <button type="button" id="left-drag-rot-btn" class="m-mode-btn active" title="按住拖曳 360 度旋轉視角">旋轉</button>
+      </div>
 
-    <div class="pan-dpad-grid" role="group" aria-label="畫面平移與縮放控制">
-      <span></span>
-      <button type="button" class="pan-btn" data-pan="up" title="畫面往前平移">▲</button>
-      <span></span>
-      <button type="button" class="pan-btn" data-pan="left" title="畫面往左平移">◀</button>
-      <button type="button" class="pan-btn home" id="pan-home-btn" title="回到最佳全覽">全覽</button>
-      <button type="button" class="pan-btn" data-pan="right" title="畫面往右平移">▶</button>
-      <button type="button" class="pan-btn" data-pan="zoomIn" title="放大視角">＋</button>
-      <button type="button" class="pan-btn" data-pan="down" title="畫面往後平移">▼</button>
-      <button type="button" class="pan-btn" data-pan="zoomOut" title="縮小視角">－</button>
+      <div class="pan-dpad-grid" role="group" aria-label="畫面平移與縮放控制">
+        <span></span>
+        <button type="button" class="pan-btn" data-pan="up" title="畫面往前平移">▲</button>
+        <span></span>
+        <button type="button" class="pan-btn" data-pan="left" title="畫面往左平移">◀</button>
+        <button type="button" class="pan-btn home" id="pan-home-btn" title="回到最佳全覽">全覽</button>
+        <button type="button" class="pan-btn" data-pan="right" title="畫面往右平移">▶</button>
+        <button type="button" class="pan-btn" data-pan="zoomIn" title="放大視角">＋</button>
+        <button type="button" class="pan-btn" data-pan="down" title="畫面往後平移">▼</button>
+        <button type="button" class="pan-btn" data-pan="zoomOut" title="縮小視角">－</button>
+      </div>
     </div>
   </div>
 
   <!-- 左側功能面板：樓層切換、A* 路線規劃、精選導覽、小地圖 -->
-  <aside id="left-dock">
-    <div class="dock-card">
+  <aside id="left-dock" class="mobile-collapsed">
+    <div class="dock-card floor-dock-card">
       <div class="section-header">
         <h2>樓層剖面切換</h2>
-        <span>每層高 3.6m · 選層自動展開教室</span>
+        <span class="desktop-only-hint">每層高 3.6m · 選層自動展開教室</span>
+        <button type="button" id="mobile-dock-toggle-btn" class="mobile-dock-toggle">路線與導覽 ▴</button>
       </div>
       <div class="floor-switcher">
         <button class="floor-btn active" data-floor="ALL">全棟</button>
@@ -1910,7 +2255,7 @@ body.panel-open #compass-box {
       </div>
     </div>
 
-    <div class="dock-card">
+    <div class="dock-card tools-dock-card" id="tools-dock-card">
       <div class="dock-tabs">
         <button class="tab-btn active" data-tab="tab-route">路線規劃 (A*)</button>
         <button class="tab-btn" data-tab="tab-tours">精選導覽</button>
@@ -3768,8 +4113,34 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xdbe7e0);
 scene.fog = new THREE.FogExp2(0xdbe7e0, 0.0013);
 
-const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.5, 2200);
-camera.position.set(0, 185, 195);
+function getResponsiveOverviewCamera() {
+  const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+  if (aspect < 0.72) {
+    // 手機直向：擴大視角並拉遠相機，使全校東西向跑道與活動中心完整納入窄螢幕
+    return {
+      fov: 56,
+      pos: new THREE.Vector3(-4, 248, 258),
+      target: new THREE.Vector3(6, 0, 12)
+    };
+  }
+  if (aspect < 1.12) {
+    // 平板直向或方形視窗
+    return {
+      fov: 52,
+      pos: new THREE.Vector3(-2, 212, 222),
+      target: new THREE.Vector3(8, 0, 15)
+    };
+  }
+  return {
+    fov: 48,
+    pos: new THREE.Vector3(0, 185, 195),
+    target: new THREE.Vector3(10, 0, 18)
+  };
+}
+
+const initCamCfg = getResponsiveOverviewCamera();
+const camera = new THREE.PerspectiveCamera(initCamCfg.fov, window.innerWidth / window.innerHeight, 0.5, 2200);
+camera.position.copy(initCamCfg.pos);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -3783,8 +4154,8 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.07;
 controls.maxPolarAngle = Math.PI / 2 - 0.03;
 controls.minDistance = 8;
-controls.maxDistance = 420;
-controls.target.set(10, 0, 18);
+controls.maxDistance = 450;
+controls.target.copy(initCamCfg.target);
 controls.addEventListener('change', () => { state.needsRender = true; });
 
 const hemiLight = new THREE.HemisphereLight(0xffffff, 0x8ea895, 0.85);
@@ -6488,6 +6859,12 @@ function setViewMode(mode) {
   if (isFpv) {
     controls.enabled = false;
     document.getElementById('nav-status-bar')?.classList.remove('visible');
+    if (window.innerWidth <= 768) {
+      const walkBar = document.getElementById('walk-hud-bar');
+      walkBar?.classList.add('minimized');
+      const colBtn = document.getElementById('walk-hud-collapse-btn');
+      if (colBtn) colBtn.textContent = '展開面板';
+    }
     const startX = state.activeRoute ? state.activeRoute.pathNodes[0].wx : pxToWorldX(1005);
     const startZ = state.activeRoute ? state.activeRoute.pathNodes[0].wz : pyToWorldZ(915);
     state.fpv.pos.set(startX, 1.72, startZ);
@@ -6583,16 +6960,32 @@ function updateFloatingLabels() {
   const halfH = window.innerHeight / 2;
   const placedRects = [];
 
-  const rightOpen = !document.getElementById('right-panel').classList.contains('collapsed');
+  const rightPanelEl = document.getElementById('right-panel');
+  const rightOpen = rightPanelEl && !rightPanelEl.classList.contains('collapsed');
   const reopenPill = document.getElementById('reopen-drawer-pill');
   if (reopenPill) {
     reopenPill.classList.toggle('visible', !rightOpen && Boolean(state.selectedBuildingId) && state.viewMode === 'birdseye');
   }
 
-  placedRects.push({ l: 0, r: window.innerWidth, t: 0, b: 74 });
-  placedRects.push({ l: 0, r: 350, t: 74, b: window.innerHeight });
-  if (rightOpen) {
-    placedRects.push({ l: window.innerWidth - 415, r: window.innerWidth, t: 70, b: window.innerHeight });
+  // 動態讀取當前畫面實際可見 UI 區塊的邊界盒，確保手機、平板與桌機皆精準避讓且不誤擋 3D 標籤
+  const uiBlockingEls = [
+    document.getElementById('top-bar'),
+    document.getElementById('left-dock'),
+    document.getElementById('compass-box'),
+    rightOpen ? rightPanelEl : null,
+    document.getElementById('programs-drawer')?.classList.contains('open') ? document.getElementById('programs-drawer') : null,
+    document.getElementById('walk-hud-bar')?.classList.contains('visible') ? document.getElementById('walk-hud-bar') : null,
+    document.getElementById('nav-status-bar')?.classList.contains('visible') ? document.getElementById('nav-status-bar') : null
+  ];
+
+  for (const el of uiBlockingEls) {
+    if (!el) continue;
+    const style = window.getComputedStyle(el);
+    if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') continue;
+    const r = el.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) {
+      placedRects.push({ l: r.left - 4, r: r.right + 4, t: r.top - 4, b: r.bottom + 4 });
+    }
   }
 
   // 周邊道路與方位 3D 標籤投影
@@ -7011,9 +7404,21 @@ function setupUIAndInteractions() {
     });
   }
 
-  document.getElementById('btn-calc-route').addEventListener('click', triggerRouteCalculation);
+  document.getElementById('btn-calc-route').addEventListener('click', () => {
+    triggerRouteCalculation();
+    if (window.innerWidth <= 1024) {
+      document.getElementById('left-dock')?.classList.add('mobile-collapsed');
+      const toggleBtn = document.getElementById('mobile-dock-toggle-btn');
+      if (toggleBtn) toggleBtn.textContent = '路線與導覽 ▴';
+    }
+  });
   document.getElementById('btn-walk-route').addEventListener('click', () => {
     if (!state.activeRoute) triggerRouteCalculation();
+    if (window.innerWidth <= 1024) {
+      document.getElementById('left-dock')?.classList.add('mobile-collapsed');
+      const toggleBtn = document.getElementById('mobile-dock-toggle-btn');
+      if (toggleBtn) toggleBtn.textContent = '路線與導覽 ▴';
+    }
     setViewMode('fpv');
     startRouteAutoWalk();
   });
@@ -7094,6 +7499,11 @@ function setupUIAndInteractions() {
       }
       const details = computeRouteDetails(fullPath);
       renderRoute3D(details);
+      if (window.innerWidth <= 1024) {
+        document.getElementById('left-dock')?.classList.add('mobile-collapsed');
+        const toggleBtn = document.getElementById('mobile-dock-toggle-btn');
+        if (toggleBtn) toggleBtn.textContent = '路線與導覽 ▴';
+      }
       startRouteAutoWalk();
     });
 
@@ -7139,12 +7549,40 @@ function setupUIAndInteractions() {
 
   document.getElementById('btn-reset-cam').addEventListener('click', () => {
     if (state.viewMode !== 'birdseye') setViewMode('birdseye');
-    camera.fov = 48;
+    const cfg = getResponsiveOverviewCamera();
+    camera.fov = cfg.fov;
     camera.updateProjectionMatrix();
     document.getElementById('btn-reset-cam')?.classList.add('active');
     applyFloorVisibility(null, 'ALL');
     document.getElementById('right-panel').classList.add('collapsed');
-    animateCameraTo(new THREE.Vector3(0, 185, 195), new THREE.Vector3(10, 0, 18));
+    document.getElementById('left-dock')?.classList.add('mobile-collapsed');
+    const toggleBtn = document.getElementById('mobile-dock-toggle-btn');
+    if (toggleBtn) toggleBtn.textContent = '路線與導覽 ▴';
+    animateCameraTo(cfg.pos, cfg.target);
+  });
+
+  // 行動裝置底部「路線與導覽」面板展開／收合切換
+  const mobileDockToggleBtn = document.getElementById('mobile-dock-toggle-btn');
+  mobileDockToggleBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const dock = document.getElementById('left-dock');
+    if (!dock) return;
+    const isCollapsed = dock.classList.toggle('mobile-collapsed');
+    mobileDockToggleBtn.textContent = isCollapsed ? '路線與導覽 ▴' : '收合面板 ▾';
+    if (!isCollapsed) {
+      document.getElementById('right-panel')?.classList.add('collapsed');
+      document.getElementById('programs-drawer')?.classList.remove('open');
+    }
+  });
+
+  // 行動裝置右上角羅盤十字操控盤展開／收合切換
+  const compassExpandBtn = document.getElementById('compass-expand-btn');
+  compassExpandBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const box = document.getElementById('compass-box');
+    if (!box) return;
+    const isCompact = box.classList.toggle('mobile-compact');
+    compassExpandBtn.textContent = isCompact ? '操控 ▾' : '收合 ▴';
   });
 
   document.getElementById('panel-close').addEventListener('click', () => {
@@ -7266,6 +7704,20 @@ function setupUIAndInteractions() {
 
   renderer.domElement.addEventListener('pointerdown', (e) => {
     downPos = { x: e.clientX, y: e.clientY };
+    if (window.innerWidth <= 1024) {
+      const dock = document.getElementById('left-dock');
+      if (dock && !dock.classList.contains('mobile-collapsed')) {
+        dock.classList.add('mobile-collapsed');
+        const toggleBtn = document.getElementById('mobile-dock-toggle-btn');
+        if (toggleBtn) toggleBtn.textContent = '路線與導覽 ▴';
+      }
+      const cBox = document.getElementById('compass-box');
+      if (cBox && !cBox.classList.contains('mobile-compact')) {
+        cBox.classList.add('mobile-compact');
+        const expBtn = document.getElementById('compass-expand-btn');
+        if (expBtn) expBtn.textContent = '操控 ▾';
+      }
+    }
     if (state.viewMode === 'fpv') {
       isDraggingLook = true;
       prevLook = { x: e.clientX, y: e.clientY };
