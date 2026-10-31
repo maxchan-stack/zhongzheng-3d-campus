@@ -179,6 +179,7 @@ const buildingMeshes = [];
 const roomMeshes = [];
 const buildingMap = new Map();
 const collisionBoxes = [];
+const collisionCircles = [];
 const labelElements = [];
 const roomLabelElements = [];
 
@@ -884,6 +885,16 @@ function buildGateAndEastPlazaDetails() {
         carGroup.position.set(sx, 0.16, sz);
         carGroup.rotation.y = side * 0.32;
         details3DGroup.add(carGroup);
+
+        // 登錄車輛碰撞邊界盒（人物不能穿過車輛）
+        collisionBoxes.push({
+          minX: sx - 2.1,
+          maxX: sx + 2.1,
+          minZ: sz - 1.25,
+          maxZ: sz + 1.25,
+          type: 'vehicle',
+          name: '停放車輛'
+        });
       }
     }
   });
@@ -1052,6 +1063,15 @@ function buildColorfulFlowerBeds() {
       root.position.set(bx + offset, 1.9, bz + (idx === 0 ? 0.45 : -0.45));
       root.rotation.z = offset * 0.18;
       details3DGroup.add(root);
+    });
+
+    // 登錄大榕樹主幹實體碰撞圓形
+    collisionCircles.push({
+      x: bx,
+      z: bz,
+      r: 1.15,
+      type: 'tree',
+      name: '大榕樹'
     });
   });
 }
@@ -1417,6 +1437,7 @@ function treeRand(px, py, salt) {
 }
 
 function disposeTreeGroup() {
+  collisionCircles.length = 0;
   while (treeGroup.children.length > 0) {
     const m = treeGroup.children[0];
     treeGroup.remove(m);
@@ -1441,6 +1462,21 @@ function buildTreesInstanced(rows) {
 
   const dummy = new THREE.Object3D();
   const color = new THREE.Color();
+
+  // 登錄所有樹木樹幹之實體碰撞圓形（半徑配合樹冠與樹幹半徑，人物不能穿過樹木）
+  rows.forEach(([px, py, pr]) => {
+    const wx = pxToWorldX(px);
+    const wz = pyToWorldZ(py);
+    const crownR = Math.max(1.1, Math.min(6, pr * SCALE));
+    const trunkR = Math.max(0.48, Math.min(1.2, 0.28 + crownR * 0.14));
+    collisionCircles.push({
+      x: wx,
+      z: wz,
+      r: trunkR,
+      type: 'tree',
+      name: '樹木'
+    });
+  });
 
   // 樹幹：單一 InstancedMesh
   const trunkGeo = new THREE.CylinderGeometry(0.16, 0.26, 1, 6);
@@ -2267,11 +2303,30 @@ function animateStudentAvatar(now, isMoving) {
 }
 
 function checkBuildingCollision(nx, nz) {
+  const charR = 0.32; // 人物身軀半徑緩衝
+
+  // 1. 建築物與車輛矩形邊界盒碰撞判定
   for (const box of collisionBoxes) {
-    if (nx >= box.minX && nx <= box.maxX && nz >= box.minZ && nz <= box.maxZ) {
+    if (
+      nx >= box.minX - charR &&
+      nx <= box.maxX + charR &&
+      nz >= box.minZ - charR &&
+      nz <= box.maxZ + charR
+    ) {
       return box;
     }
   }
+
+  // 2. 樹木樹幹實體圓形碰撞判定（人物不能穿過樹木）
+  for (const tc of collisionCircles) {
+    const dx = nx - tc.x;
+    const dz = nz - tc.z;
+    const minDist = tc.r + charR;
+    if (dx * dx + dz * dz <= minDist * minDist) {
+      return tc;
+    }
+  }
+
   return null;
 }
 
