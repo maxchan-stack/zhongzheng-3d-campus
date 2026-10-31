@@ -4053,101 +4053,384 @@ scene.add(brickStudsGroup);
 
 let monetSkyMesh = null;
 function createMonetStarrySky() {
+  const W = 1800;
+  const H = 760;
   const canvas = document.createElement('canvas');
-  canvas.width = 1024;
-  canvas.height = 512;
+  canvas.width = W;
+  canvas.height = H;
   const ctx = canvas.getContext('2d');
 
-  // 莫內印象派調色：深靛藍、群青、紫羅蘭與松石綠筆觸夜空
-  const bgGrad = ctx.createLinearGradient(0, 0, 0, 512);
-  bgGrad.addColorStop(0, '#060c18');
-  bgGrad.addColorStop(0.35, '#0c1a32');
-  bgGrad.addColorStop(0.70, '#16324d');
-  bgGrad.addColorStop(1.0, '#1e4854');
-  ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, 1024, 512);
+  // 因 SphereGeometry 使用 BackSide 內側投影，水平翻轉畫布使左右構圖（左絲柏、中雙漩渦、右弦月）與參考畫作完全一致
+  ctx.translate(W, 0);
+  ctx.scale(-1, 1);
 
-  // 印象派碎筆觸層疊（莫內經典睡蓮池／星夜筆觸質感）
-  const dabColors = [
-    'rgba(28, 64, 110, 0.45)',
-    'rgba(42, 98, 142, 0.40)',
-    'rgba(65, 138, 168, 0.35)',
-    'rgba(45, 95, 110, 0.35)',
-    'rgba(90, 80, 130, 0.30)',
-    'rgba(235, 205, 120, 0.22)',
-    'rgba(245, 230, 175, 0.28)'
+  let seed = 18890619;
+  const rand = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+
+  // 1. 深普魯士藍與鈷藍厚塗底色
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+  bgGrad.addColorStop(0.0, '#0a1c4e');
+  bgGrad.addColorStop(0.45, '#123178');
+  bgGrad.addColorStop(0.78, '#1b479c');
+  bgGrad.addColorStop(1.0, '#0b1b45');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // 對照參考畫作精準定義弦月、10 顆同心星辰與雙螺旋漩渦座標
+  const moon = { x: 0.755 * W, y: 0.24 * H, r: 90 };
+  const stars = [
+    { x: 0.140 * W, y: 0.11 * H, r: 40, whiteCore: false },
+    { x: 0.250 * W, y: 0.23 * H, r: 37, whiteCore: false },
+    { x: 0.330 * W, y: 0.08 * H, r: 27, whiteCore: false },
+    { x: 0.400 * W, y: 0.11 * H, r: 25, whiteCore: false },
+    { x: 0.545 * W, y: 0.14 * H, r: 44, whiteCore: false },
+    { x: 0.625 * W, y: 0.31 * H, r: 38, whiteCore: true },
+    { x: 0.320 * W, y: 0.44 * H, r: 27, whiteCore: false },
+    { x: 0.345 * W, y: 0.68 * H, r: 54, whiteCore: true },
+    { x: 0.075 * W, y: 0.62 * H, r: 24, whiteCore: false },
+    { x: 0.155 * W, y: 0.67 * H, r: 35, whiteCore: false }
   ];
 
-  // 筆觸流動漩渦與波浪
-  for (let layer = 0; layer < 6; layer++) {
-    for (let i = 0; i < 900; i++) {
-      const x = Math.random() * 1024;
-      const y = Math.random() * 420;
-      const len = 12 + Math.random() * 26;
-      const angle = Math.sin(x * 0.008 + layer) * 0.45 + (Math.random() - 0.5) * 0.3;
-      ctx.strokeStyle = dabColors[Math.floor(Math.random() * dabColors.length)];
-      ctx.lineWidth = 2 + Math.random() * 3.5;
+  // 主漩渦 (v1) 與右下副漩渦 (v2)
+  const v1 = { x: 0.455 * W, y: 0.510 * H, r: 162, dir: -1 };
+  const v2 = { x: 0.615 * W, y: 0.655 * H, r: 94, dir: 1 };
+
+  // 週期性水平距離（處理左右無縫拼接）
+  function wrapDx(x1, x2) {
+    let d = x1 - x2;
+    if (d > W * 0.5) d -= W;
+    if (d < -W * 0.5) d += W;
+    return d;
+  }
+
+  // 連續流線向量場：結合全畫面波浪氣流、中央雙漩渦與星辰同心環流，杜絕生硬水平直線
+  function getFlowVector(x, y) {
+    const nx = ((x % W) + W) % W / W;
+    const ny = y / H;
+    const twoPi = Math.PI * 2;
+
+    // 基礎大波浪流場（具有明顯起伏斜率與諧波，使所有背景筆觸皆呈有機波浪流動）
+    const dWave =
+      0.52 * Math.sin(nx * twoPi - 0.85) +
+      0.34 * Math.cos(nx * twoPi * 2 + ny * 3.8) +
+      0.22 * Math.sin(nx * twoPi * 3 - ny * 5.2);
+    let vx = 1.0;
+    let vy = dWave;
+
+    // 疊加主漩渦 (v1) 與副漩渦 (v2) 的流線捲動
+    const vortices = [
+      { ...v1, reach: 2.1, strength: 4.2, pull: 0.16 },
+      { ...v2, reach: 2.0, strength: 3.8, pull: 0.18 }
+    ];
+    for (const v of vortices) {
+      const dx = wrapDx(x, v.x);
+      const dy = y - v.y;
+      const dist = Math.hypot(dx, dy) + 1e-4;
+      const maxD = v.r * v.reach;
+      if (dist < maxD) {
+        const t = 1 - dist / maxD;
+        const w = t * t * v.strength;
+        const tx = (-dy / dist) * v.dir - (dx / dist) * v.pull;
+        const ty = (dx / dist) * v.dir - (dy / dist) * v.pull;
+        vx += tx * w;
+        vy += ty * w;
+      }
+    }
+
+    // 疊加每顆星辰與弦月外圍的同心漣漪流向，使藍天筆觸自然繞星旋轉
+    const celestials = [moon, ...stars];
+    for (const c of celestials) {
+      const dx = wrapDx(x, c.x);
+      const dy = y - c.y;
+      const dist = Math.hypot(dx, dy) + 1e-4;
+      const haloR = c.r * 2.15;
+      if (dist < haloR) {
+        const t = 1 - dist / haloR;
+        const w = t * t * 4.5;
+        vx += (-dy / dist) * w;
+        vy += (dx / dist) * w;
+      }
+    }
+
+    const mag = Math.hypot(vx, vy) + 1e-5;
+    return { ux: vx / mag, uy: vy / mag };
+  }
+
+  // 繪製跨邊界無縫的多段流線油畫筆觸（Streamline Ribbon Stroke）
+  function drawStreamStroke(startX, startY, totalLen, lineWidth, color, jitter = 0.08) {
+    const steps = 5;
+    const stepLen = totalLen / steps;
+    const pts = [{ x: startX, y: startY }];
+    let cx = startX;
+    let cy = startY;
+    for (let s = 0; s < steps; s++) {
+      const { ux, uy } = getFlowVector(cx, cy);
+      const ang = Math.atan2(uy, ux) + (rand() - 0.5) * jitter;
+      cx += Math.cos(ang) * stepLen;
+      cy += Math.sin(ang) * stepLen;
+      pts.push({ x: cx, y: cy });
+    }
+
+    // 若筆觸靠近左右邊界，同時在 +/- W 繪製以確保 360 度環景完全無接縫
+    const offsets = [0];
+    if (startX < 80 || cx < 80) offsets.push(W);
+    if (startX > W - 80 || cx > W - 80) offsets.push(-W);
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    for (const ox of offsets) {
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x + ox, pts[0].y);
+      for (let i = 1; i < pts.length; i++) {
+        ctx.lineTo(pts[i].x + ox, pts[i].y);
+      }
+      ctx.stroke();
+    }
+  }
+
+  // 計算區域色彩權重（對應參考畫作的 S 型星雲亮帶、地平線亮黃白雲帶與深藍山稜）
+  function pickRegionColor(x, y) {
+    const nx = ((x % W) + W) % W / W;
+    const ny = y / H;
+
+    // 週期性平滑地平線雲浪與山稜高度
+    const hillWave = 0.87 - 0.09 * Math.sin(nx * Math.PI * 2 - 1.1) - 0.04 * Math.cos(nx * Math.PI * 4);
+    const glowWave = hillWave - 0.065;
+
+    if (ny > hillWave) {
+      const hillPalette = ['#061130', '#0a1b48', '#102966', '#183b82', '#224e9e'];
+      return hillPalette[Math.floor(rand() * hillPalette.length)];
+    }
+
+    if (Math.abs(ny - glowWave) < 0.055) {
+      const horizonGlow = ['#ffffff', '#eef7fd', '#b8dff7', '#fce878', '#f5d042', '#5296d6'];
+      return horizonGlow[Math.floor(rand() * horizonGlow.length)];
+    }
+
+    // 左中至中央大漩渦再延伸至右下副漩渦的 S 型星雲主氣流帶
+    const streamCenterY =
+      0.46 +
+      0.13 * Math.sin(nx * Math.PI * 2 - 0.35) -
+      0.11 * Math.exp(-Math.pow((nx - 0.43) / 0.14, 2));
+    const distStream = Math.abs(ny - streamCenterY);
+    const d1 = Math.hypot(wrapDx(x, v1.x), y - v1.y);
+    const d2 = Math.hypot(wrapDx(x, v2.x), y - v2.y);
+
+    const inSwirlCore =
+      (d1 < v1.r * 1.12 && d1 > v1.r * 0.10) ||
+      (d2 < v2.r * 1.12 && d2 > v2.r * 0.10) ||
+      distStream < 0.095;
+
+    const deepNight = ['#081844', '#0d235e', '#133178', '#193f91', '#2150ab'];
+    const ceruleanBlues = ['#2860bd', '#3574ce', '#488cdb', '#62a6e6', '#85c0f0'];
+    const impastoLights = ['#b8dff8', '#e1f2fc', '#ffffff', '#', '#fce97e', '#f2cf4b'];
+
+    if (inSwirlCore) {
+      const r = rand();
+      if (r < 0.38) {
+        const lights = ['#c4e4fa', '#e8f5fd', '#ffffff', '#', '#fce87a', '#f0cb48'];
+        return lights[Math.floor(rand() * lights.length)].replace('#', '#ffffff');
+      }
+      if (r < 0.80) return ceruleanBlues[Math.floor(rand() * ceruleanBlues.length)];
+      return deepNight[Math.floor(rand() * deepNight.length)];
+    }
+
+    return rand() < 0.56
+      ? deepNight[Math.floor(rand() * deepNight.length)]
+      : ceruleanBlues[Math.floor(rand() * ceruleanBlues.length)];
+  }
+
+  // 2. 全畫布鋪滿 26,000 道連續流線厚塗油畫筆觸
+  for (let i = 0; i < 26000; i++) {
+    const x = rand() * W;
+    const y = rand() * H;
+    const len = 22 + rand() * 26;
+    const thick = 2.8 + rand() * 2.6;
+    const col = pickRegionColor(x, y);
+    drawStreamStroke(x, y, len, thick, col, 0.09);
+  }
+
+  // 3. 精雕中央雙螺旋 S 型漩渦（v1 與 v2）及左翼湧入氣流的漸進捲動筆觸
+  function paintVortexArms(cx, cy, maxR, dir, arms, count) {
+    const armPalette = [
+      '#ffffff', '#eef7fd', '#bce0f9', '#7fbbe8',
+      '#468ad6', '#255bb5', '#102b6e', '#fce77c', '#e8c444'
+    ];
+    for (let i = 0; i < count; i++) {
+      const armIdx = i % arms;
+      const t = Math.pow(rand(), 0.78);
+      const r = 8 + t * maxR;
+      const theta =
+        (armIdx * Math.PI * 2) / arms +
+        t * Math.PI * 2.35 * dir +
+        (rand() - 0.5) * 0.55;
+      const sx = cx + Math.cos(theta) * r;
+      const sy = cy + Math.sin(theta) * r * 0.90;
+      const col = armPalette[Math.floor(rand() * armPalette.length)];
+      drawStreamStroke(sx, sy, 20 + rand() * 24, 3.0 + rand() * 2.4, col, 0.06);
+    }
+  }
+
+  paintVortexArms(v1.x, v1.y, v1.r * 1.18, -1, 3, 2200);
+  paintVortexArms(v2.x, v2.y, v2.r * 1.15, 1, 2, 1300);
+
+  // 4. 繪製 10 顆同心圓短弧厚塗星辰（完全遵循梵谷／參考畫作同心虛線筆觸技法）
+  const starInnerCols = ['#ffffff', '#fffbe0', '#fff28c', '#fceb4f', '#f7c91e'];
+  const starMidCols = ['#fceb4f', '#fad62c', '#f5b814', '#fff5a8'];
+  const starEdgeCols = ['#96ccf2', '#5ca0e0', '#2e6bc2', '#fceb4f', '#fff394'];
+
+  for (const st of stars) {
+    for (let rad = st.r * 1.32; rad >= st.r * 0.20; rad -= 5.2) {
+      const circumference = Math.PI * 2 * rad;
+      const dashCount = Math.max(7, Math.floor(circumference / 18));
+      const stepAngle = (Math.PI * 2) / dashCount;
+      const ratio = rad / st.r;
+
+      for (let d = 0; d < dashCount; d++) {
+        const a0 = d * stepAngle + (rand() - 0.5) * stepAngle * 0.28;
+        const a1 = a0 + stepAngle * (0.58 + rand() * 0.25);
+        const rJit = Math.max(2, rad + (rand() - 0.5) * 2.2);
+
+        let col;
+        if (ratio > 0.96) col = starEdgeCols[Math.floor(rand() * starEdgeCols.length)];
+        else if (ratio > 0.52) col = starMidCols[Math.floor(rand() * starMidCols.length)];
+        else col = st.whiteCore && rand() < 0.65 ? '#ffffff' : starInnerCols[Math.floor(rand() * starInnerCols.length)];
+
+        ctx.strokeStyle = col;
+        ctx.lineWidth = 3.4 + rand() * 2.0;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.arc(st.x, st.y, rJit, a0, a1);
+        ctx.stroke();
+      }
+    }
+
+    ctx.fillStyle = st.whiteCore ? '#ffffff' : '#ffe954';
+    ctx.beginPath();
+    ctx.arc(st.x, st.y, st.r * 0.22, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 5. 繪製右上角經典金橘色弦月與同心檸檬黃筆觸月暈
+  for (let rad = moon.r * 1.35; rad >= moon.r * 0.36; rad -= 5.5) {
+    const circumference = Math.PI * 2 * rad;
+    const dashCount = Math.max(10, Math.floor(circumference / 19));
+    const stepAngle = (Math.PI * 2) / dashCount;
+    const ratio = rad / moon.r;
+
+    for (let d = 0; d < dashCount; d++) {
+      const a0 = d * stepAngle + (rand() - 0.5) * stepAngle * 0.24;
+      const a1 = a0 + stepAngle * (0.62 + rand() * 0.22);
+      const rJit = rad + (rand() - 0.5) * 2.4;
+
+      let col;
+      if (ratio > 1.06) col = rand() < 0.55 ? '#89c4ee' : '#fceb4f';
+      else if (ratio > 0.72) col = rand() < 0.52 ? '#fff9c4' : '#fceb4f';
+      else col = rand() < 0.58 ? '#fce340' : '#f6be16';
+
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 4.0 + rand() * 2.2;
       ctx.lineCap = 'round';
       ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len * 0.6);
+      ctx.arc(moon.x, moon.y, rJit, a0, a1);
       ctx.stroke();
     }
   }
 
-  // 莫內星夜金色光環星芒與星辰
-  for (let s = 0; s < 45; s++) {
-    const sx = Math.random() * 1024;
-    const sy = 40 + Math.random() * 260;
-    const r = 3 + Math.random() * 9;
-
-    const starGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, r * 4.2);
-    starGrad.addColorStop(0, 'rgba(255, 250, 215, 0.95)');
-    starGrad.addColorStop(0.25, 'rgba(248, 215, 110, 0.65)');
-    starGrad.addColorStop(0.55, 'rgba(120, 180, 210, 0.35)');
-    starGrad.addColorStop(1, 'rgba(16, 32, 60, 0)');
-    ctx.fillStyle = starGrad;
-    ctx.beginPath();
-    ctx.arc(sx, sy, r * 4.2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 星芒筆觸同心短弧
-    ctx.strokeStyle = 'rgba(255, 238, 160, 0.55)';
-    ctx.lineWidth = 1.6;
-    for (let a = 0; a < Math.PI * 2; a += 0.8) {
-      ctx.beginPath();
-      ctx.arc(sx, sy, r * 1.8, a, a + 0.5);
-      ctx.stroke();
-    }
-  }
-
-  // 印象派金黃柔光月暈
-  const mx = 820, my = 110;
-  const moonGrad = ctx.createRadialGradient(mx, my, 0, mx, my, 85);
-  moonGrad.addColorStop(0, 'rgba(255, 252, 235, 1)');
-  moonGrad.addColorStop(0.2, 'rgba(255, 228, 140, 0.85)');
-  moonGrad.addColorStop(0.5, 'rgba(235, 185, 90, 0.45)');
-  moonGrad.addColorStop(1, 'rgba(20, 45, 80, 0)');
-  ctx.fillStyle = moonGrad;
+  // 弦月中央鮮明鎘橘黃彎月造型（對照參考畫作右上角大型橘金弦月）
+  const mr = moon.r * 0.54;
+  ctx.fillStyle = '#f59b0f';
   ctx.beginPath();
-  ctx.arc(mx, my, 85, 0, Math.PI * 2);
+  ctx.arc(moon.x, moon.y, mr, 0, Math.PI * 2);
   ctx.fill();
+
+  ctx.fillStyle = '#fceb4f';
+  ctx.beginPath();
+  ctx.arc(moon.x - mr * 0.30, moon.y - mr * 0.16, mr * 0.74, 0, Math.PI * 2);
+  ctx.fill();
+
+  for (let i = 0; i < 110; i++) {
+    const isOuter = i < 68;
+    const cx = isOuter ? moon.x : moon.x - mr * 0.30;
+    const cy = isOuter ? moon.y : moon.y - mr * 0.16;
+    const baseR = isOuter ? mr * (0.78 + rand() * 0.24) : mr * (0.18 + rand() * 0.50);
+    const a0 = rand() * Math.PI * 2;
+    const a1 = a0 + 0.35 + rand() * 0.35;
+    ctx.strokeStyle = isOuter ? (rand() < 0.65 ? '#f0870a' : '#ffb814') : (rand() < 0.6 ? '#fff7ad' : '#fceb4f');
+    ctx.lineWidth = 3.8 + rand() * 2.0;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(cx, cy, baseR, a0, a1);
+    ctx.stroke();
+  }
+
+  // 6. 左側火焰狀絲柏樹剪影筆觸
+  const cypX = 0.215 * W;
+  const cypCols = ['#071210', '#0d1f1a', '#152d23', '#203b2a', '#2e3721', '#0f1b24'];
+  for (let i = 0; i < 720; i++) {
+    const ny = 0.06 + Math.pow(rand(), 0.85) * 0.94;
+    const y = ny * H;
+    const halfWidth = Math.pow(ny, 1.38) * 62 + (ny > 0.55 ? (ny - 0.55) * 48 : 0);
+    const centerShift = Math.sin(ny * 9.5) * 9 - (1 - ny) * 7;
+    const x = cypX + centerShift + (rand() - 0.5) * 2 * halfWidth;
+    const len = 18 + rand() * 26;
+    const angle = -Math.PI * 0.5 + Math.cos(ny * 9.5) * 0.22 + (rand() - 0.5) * 0.22;
+
+    ctx.strokeStyle = cypCols[Math.floor(rand() * cypCols.length)];
+    ctx.lineWidth = 3.0 + rand() * 2.6;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.quadraticCurveTo(
+      x + Math.cos(angle) * len * 0.5 + Math.sin(y * 0.05) * 4,
+      y + Math.sin(angle) * len * 0.5,
+      x + Math.cos(angle) * len,
+      y + Math.sin(angle) * len
+    );
+    ctx.stroke();
+  }
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.ClampToEdgeWrapping;
+  tex.repeat.set(3, 1);
 
-  const skyGeo = new THREE.SphereGeometry(1800, 32, 20);
+  const skyGroup = new THREE.Group();
+
+  // 將整張星夜畫作完整映射於地平線下方至仰角 28 度之間（phi: 0.345*PI .. 0.565*PI），消除地平線縫隙並使弦月、群星、雙漩渦、絲柏樹完整同框
+  const bandPhiStart = Math.PI * 0.345;
+  const bandPhiLength = Math.PI * 0.22;
+  const skyGeo = new THREE.SphereGeometry(1650, 72, 36, 0, Math.PI * 2, bandPhiStart, bandPhiLength);
   const skyMat = new THREE.MeshBasicMaterial({
     map: tex,
     side: THREE.BackSide,
     fog: false,
     depthWrite: false
   });
-  const skyMesh = new THREE.Mesh(skyGeo, skyMat);
-  skyMesh.visible = false;
-  scene.add(skyMesh);
-  return skyMesh;
+  const bandMesh = new THREE.Mesh(skyGeo, skyMat);
+  bandMesh.rotation.y = 0.30;
+  skyGroup.add(bandMesh);
+
+  // 仰角 28 度以上之天頂深普魯士藍封頂
+  const capGeo = new THREE.SphereGeometry(1650, 32, 12, 0, Math.PI * 2, 0, bandPhiStart + 0.01);
+  const capMat = new THREE.MeshBasicMaterial({
+    color: 0x0a1c4e,
+    side: THREE.BackSide,
+    fog: false,
+    depthWrite: false
+  });
+  skyGroup.add(new THREE.Mesh(capGeo, capMat));
+
+  skyGroup.visible = false;
+  scene.add(skyGroup);
+  return skyGroup;
 }
 
 const roadLabelElements = [];
