@@ -1277,25 +1277,34 @@ function buildGateAndEastPlazaDetails() {
   // 3. 雙中庭天井：
   //    - 左側天井為「中正花園」，右側天井為高聳大王椰子樹之「椰子樹花園」。
 
-  // A. 迎賓廣場米白地磚嵌紅磚方格網線鋪面
+  // A. 迎賓廣場灰石板壓花地磚嵌雙拼紅磚方格網線鋪面（依實拍照片 media_1793575277815~824 還原）
   const plazaCanvas = document.createElement('canvas');
   plazaCanvas.width = 512;
   plazaCanvas.height = 512;
   const pCtx = plazaCanvas.getContext('2d');
-  pCtx.fillStyle = '#ddd5c9';
+  // 實景為冷灰色壓花石板地坪
+  pCtx.fillStyle = '#a9b1b8';
   pCtx.fillRect(0, 0, 512, 512);
-  pCtx.strokeStyle = '#b87662';
-  pCtx.lineWidth = 6;
-  for (let x = 0; x <= 512; x += 48) {
+  // 細緻石板縫隙雜點紋理
+  pCtx.strokeStyle = 'rgba(120, 128, 136, 0.45)';
+  pCtx.lineWidth = 1.5;
+  for (let i = 0; i < 512; i += 24) {
     pCtx.beginPath();
-    pCtx.moveTo(x, 0);
-    pCtx.lineTo(x, 512);
+    pCtx.moveTo(i, 0); pCtx.lineTo(i, 512);
+    pCtx.moveTo(0, i); pCtx.lineTo(512, i);
     pCtx.stroke();
   }
-  for (let y = 0; y <= 512; y += 48) {
+  // 標誌性「雙拼深紅磚」分隔網格線（照片中規整的大方格網）
+  pCtx.strokeStyle = '#9c3d2e';
+  pCtx.lineWidth = 8;
+  for (let x = 0; x <= 512; x += 64) {
     pCtx.beginPath();
-    pCtx.moveTo(0, y);
-    pCtx.lineTo(512, y);
+    pCtx.moveTo(x, 0); pCtx.lineTo(x, 512);
+    pCtx.stroke();
+  }
+  for (let y = 0; y <= 512; y += 64) {
+    pCtx.beginPath();
+    pCtx.moveTo(0, y); pCtx.lineTo(512, y);
     pCtx.stroke();
   }
   const plazaTex = new THREE.CanvasTexture(plazaCanvas);
@@ -1359,56 +1368,270 @@ function buildGateAndEastPlazaDetails() {
   groveMesh.receiveShadow = true;
   details3DGroup.add(groveMesh);
 
-  // B. 中正園「The statue」雕像島（精確正對至聖樓正門大階梯軸線 py: 815！）
+  // B. 【中正園與現代幾何太極裝置藝術區】實景精準建模（依實拍照片 media_1793575277815~824 還原）：
+  // 1. 圓形黃褐色板岩矮石牆花台（外壁砌石線條、壓頂石收邊、隆起草坡）
+  // 2. 直立天然石碑巨原石、散置天然黑灰大景石
+  // 3. 秋季盛開粉紅果實之「台灣欒樹」（雙層冠：綠葉冠 + 繁盛欒樹蒴果冠）
+  // 4. 【現代幾何太極大石雕】（長方形雙層白砂臺座 + 深墨綠色大理石剛勁斜切互鎖塊面）
+  // 5. 迎賓車道黃黑相間橡膠減速坡（Speed Bump）與立式圓形「禁止進入」交通反光標誌
+  // 6. 至聖樓側翼洗石子矮駁坎與修剪金露花綠籬
   const islandX = pxToWorldX(1048);
   const islandZ = pyToWorldZ(815);
+
+  // 1. 黃褐色板岩砌石花台矮牆（直徑約 17.2m，高約 0.65m）
+  const stoneWallMat = new THREE.MeshStandardMaterial({ color: 0xba9b73, roughness: 0.88 });
+  const capStoneMat = new THREE.MeshStandardMaterial({ color: 0xc8b293, roughness: 0.82 });
   const curbRing = new THREE.Mesh(
-    new THREE.CylinderGeometry(8.2, 8.5, 0.48, 32),
-    new THREE.MeshStandardMaterial({ color: 0x9b968c, roughness: 0.85 })
+    new THREE.CylinderGeometry(8.5, 8.8, 0.62, 36),
+    stoneWallMat
   );
-  curbRing.position.set(islandX, 0.38, islandZ);
+  curbRing.position.set(islandX, 0.45, islandZ);
   curbRing.receiveShadow = true;
+  curbRing.castShadow = true;
   details3DGroup.add(curbRing);
 
-  const lawnMound = new THREE.Mesh(
-    new THREE.CylinderGeometry(7.6, 8.0, 0.56, 32),
-    new THREE.MeshStandardMaterial({ color: 0x5c7f43, roughness: 0.9 })
+  // 頂部石材收邊壓頂條
+  const curbCap = new THREE.Mesh(
+    new THREE.CylinderGeometry(8.85, 8.85, 0.12, 36),
+    capStoneMat
   );
-  lawnMound.position.set(islandX, 0.46, islandZ);
+  curbCap.position.set(islandX, 0.78, islandZ);
+  curbCap.receiveShadow = true;
+  details3DGroup.add(curbCap);
+
+  // 花台內部青翠隆起草皮
+  const lawnMound = new THREE.Mesh(
+    new THREE.CylinderGeometry(8.2, 8.4, 0.72, 32),
+    new THREE.MeshStandardMaterial({ color: 0x4e7837, roughness: 0.9 })
+  );
+  lawnMound.position.set(islandX, 0.58, islandZ);
   lawnMound.receiveShadow = true;
   details3DGroup.add(lawnMound);
 
-  // 假山岩石
-  const rockMat = new THREE.MeshStandardMaterial({ color: 0x7a756b, roughness: 0.88 });
+  // 2. 花台內部天然景觀原石群（對齊照片 1、2、3、4 特寫）
+  // 2a. 直立天然石碑巨原石（位於花台中間偏後方，高約 2.9m，灰黑花崗岩質）
+  const monolithMat = new THREE.MeshStandardMaterial({ color: 0x3d413f, roughness: 0.85 });
+  const monolith = new THREE.Mesh(new THREE.BoxGeometry(1.4, 2.9, 0.95), monolithMat);
+  monolith.position.set(islandX + 1.2, 1.85, islandZ - 2.2);
+  monolith.rotation.y = 0.35;
+  monolith.rotation.z = -0.06;
+  monolith.castShadow = true;
+  details3DGroup.add(monolith);
+
+  // 2b. 散置天然黑色河卵大景石（半嵌於草皮與石磚路緣邊）
+  const darkRockMat = new THREE.MeshStandardMaterial({ color: 0x2e3330, roughness: 0.88 });
   [
-    { dx: 0.2, dz: -0.3, r: 1.45, h: 1.85 },
-    { dx: -2.2, dz: 1.3, r: 1.05, h: 1.15 },
-    { dx: 2.4, dz: 1.6, r: 0.92, h: 0.98 },
-    { dx: -1.7, dz: -2.3, r: 0.82, h: 0.88 },
-    { dx: 2.0, dz: -1.9, r: 1.0, h: 1.1 }
+    { dx: -2.8, dz: 4.8, rx: 1.6, ry: 0.7, rz: 1.1, rotY: 0.4 },
+    { dx: -0.8, dz: 6.2, rx: 1.4, ry: 0.65, rz: 0.95, rotY: -0.6 },
+    { dx: 3.2, dz: 4.2, rx: 1.3, ry: 0.6, rz: 1.0, rotY: 1.1 },
+    { dx: 4.5, dz: -1.2, rx: 1.5, ry: 0.8, rz: 1.2, rotY: -0.2 }
   ].forEach((rk) => {
-    const boulder = new THREE.Mesh(new THREE.DodecahedronGeometry(rk.r, 1), rockMat);
-    boulder.scale.set(1.1, rk.h / rk.r, 0.95);
-    boulder.position.set(islandX + rk.dx, 0.8 + rk.h * 0.35, islandZ + rk.dz);
-    boulder.castShadow = true;
-    details3DGroup.add(boulder);
+    const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(1.0, 1), darkRockMat);
+    rock.scale.set(rk.rx, rk.ry, rk.rz);
+    rock.position.set(islandX + rk.dx, 0.65 + rk.ry * 0.4, islandZ + rk.dz);
+    rock.rotation.y = rk.rotY;
+    rock.castShadow = true;
+    details3DGroup.add(rock);
   });
 
-  // 「The statue」深青銅色紀念雕像
-  const statueMat = new THREE.MeshStandardMaterial({ color: 0x2d3436, roughness: 0.4, metalness: 0.6 });
-  const statuePedestal = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.8, 1.4), new THREE.MeshStandardMaterial({ color: 0xbab5ab, roughness: 0.8 }));
-  statuePedestal.position.set(islandX, 1.6, islandZ);
-  statuePedestal.castShadow = true;
-  const statueBody = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, 2.2, 10), statueMat);
-  statueBody.position.set(islandX, 3.4, islandZ);
-  statueBody.castShadow = true;
-  const statueHead = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 10), statueMat);
-  statueHead.position.set(islandX, 4.7, islandZ);
-  statueHead.castShadow = true;
-  details3DGroup.add(statuePedestal, statueBody, statueHead);
+  // 3. 秋季盛放粉紅/紅褐色果實之「台灣欒樹」（照片 1、2、3、4 標誌性景觀！）
+  const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4a382c, roughness: 0.9 });
+  const foliageMat = new THREE.MeshStandardMaterial({ color: 0x3e6628, roughness: 0.85 });
+  const luanFruitMat = new THREE.MeshStandardMaterial({ color: 0xc45c47, roughness: 0.75 }); // 秋天紅褐色蒴果花團
+
+  const luanGroup = new THREE.Group();
+  luanGroup.position.set(islandX + 2.2, 0.6, islandZ + 0.8);
+
+  // 欒樹主幹與大分枝
+  const luanTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.52, 4.2, 10), trunkMat);
+  luanTrunk.position.y = 2.1;
+  luanTrunk.castShadow = true;
+  luanGroup.add(luanTrunk);
+
+  // 茂密深綠葉冠底層
+  const leafCrown = new THREE.Mesh(new THREE.DodecahedronGeometry(3.6, 1), foliageMat);
+  leafCrown.position.set(0, 4.8, 0);
+  leafCrown.scale.set(1.2, 0.85, 1.1);
+  leafCrown.castShadow = true;
+  luanGroup.add(leafCrown);
+
+  // 頂層覆蓋大片秋季紅粉橘色果實冠（極致真實還原現場欒樹）
+  [
+    { ox: 0.3, oy: 5.6, oz: 0.2, s: 2.5 },
+    { ox: -1.4, oy: 5.1, oz: 0.8, s: 1.8 },
+    { ox: 1.2, oy: 5.2, oz: -1.0, s: 1.9 },
+    { ox: 0.8, oy: 4.8, oz: 1.3, s: 1.7 }
+  ].forEach((f) => {
+    const fruitCluster = new THREE.Mesh(new THREE.DodecahedronGeometry(f.s, 1), luanFruitMat);
+    fruitCluster.position.set(f.ox, f.oy, f.oz);
+    fruitCluster.scale.set(1.15, 0.85, 1.05);
+    fruitCluster.castShadow = true;
+    luanGroup.add(fruitCluster);
+  });
+  details3DGroup.add(luanGroup);
+
+  // 花台旁幾球深綠修剪圓球灌木
+  const shrubMat = new THREE.MeshStandardMaterial({ color: 0x274921, roughness: 0.9 });
+  [
+    { ox: -3.5, oz: -1.5, r: 1.1 },
+    { ox: -4.2, oz: 1.8, r: 0.85 },
+    { ox: 4.8, oz: 2.2, r: 0.95 }
+  ].forEach((sb) => {
+    const shrub = new THREE.Mesh(new THREE.SphereGeometry(sb.r, 12, 10), shrubMat);
+    shrub.scale.set(1.0, 0.75, 1.0);
+    shrub.position.set(islandX + sb.ox, 0.85 + sb.r * 0.4, islandZ + sb.oz);
+    shrub.castShadow = true;
+    details3DGroup.add(shrub);
+  });
+
+  // 4. 【現代幾何太極大石雕】本體（依實拍照片 2、3、4 精準還原）：
+  // 座落於中正園花台西南前緣開闊灰石板廣場，後面為圓形花台與台灣欒樹
+  const scX = islandX - 6.8;
+  const scZ = islandZ + 9.2;
+
+  // 4a. 雙層長方形臺座（下層水泥紅磚底、上層黑大理石圍邊、內部純白碎石床）
+  const basePlinthMat = new THREE.MeshStandardMaterial({ color: 0x82776d, roughness: 0.85 });
+  const blackBorderMat = new THREE.MeshStandardMaterial({ color: 0x181c1e, roughness: 0.6 });
+  const whiteGravelMat = new THREE.MeshStandardMaterial({ color: 0xf5f4f0, roughness: 0.95 });
+
+  // 底座
+  const plinth = new THREE.Mesh(new THREE.BoxGeometry(6.0, 0.22, 4.2), basePlinthMat);
+  plinth.position.set(scX, 0.25, scZ);
+  plinth.receiveShadow = true;
+  details3DGroup.add(plinth);
+
+  // 黑石圍邊
+  const plinthBorder = new THREE.Mesh(new THREE.BoxGeometry(5.8, 0.16, 4.0), blackBorderMat);
+  plinthBorder.position.set(scX, 0.40, scZ);
+  plinthBorder.receiveShadow = true;
+  details3DGroup.add(plinthBorder);
+
+  // 白碎石床
+  const whiteBed = new THREE.Mesh(new THREE.BoxGeometry(5.4, 0.05, 3.6), whiteGravelMat);
+  whiteBed.position.set(scX, 0.48, scZ);
+  whiteBed.receiveShadow = true;
+  details3DGroup.add(whiteBed);
+
+  // 4b. 深墨綠色幾何現代太極雕塑主體（深墨綠色花崗岩質感，斜切厚重塊面互鎖，依照片 3 特寫）
+  const sculptureMat = new THREE.MeshStandardMaterial({
+    color: 0x20352e,
+    roughness: 0.36,
+    metalness: 0.22
+  });
+  const scGroup = new THREE.Group();
+  scGroup.position.set(scX, 0.48, scZ);
+  scGroup.rotation.y = -0.36; // 正對校門與迎賓車道視角
+
+  // 塊體 1：下部大斜跨支撐厚塊（大蹲姿發力體量，左低右高斜向跨撐）
+  const legBlock = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.1, 1.35), sculptureMat);
+  legBlock.position.set(-0.35, 0.78, 0);
+  legBlock.rotation.z = -0.36;
+  legBlock.rotation.y = 0.06;
+  legBlock.castShadow = true;
+  scGroup.add(legBlock);
+
+  // 塊體 2：上部橫斜大挑切面（主斜切面刀口，右側斜向上挑）
+  const armBlock = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.88, 1.45), sculptureMat);
+  armBlock.position.set(0.25, 1.58, 0.12);
+  armBlock.rotation.z = 0.28;
+  armBlock.rotation.x = -0.10;
+  armBlock.castShadow = true;
+  scGroup.add(armBlock);
+
+  // 塊體 3：中央互鎖核心咬合體（連貫上下，形成通透虛實光影）
+  const coreBlock = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.30, 1.15), sculptureMat);
+  coreBlock.position.set(-0.08, 1.12, -0.05);
+  coreBlock.rotation.y = -0.22;
+  coreBlock.castShadow = true;
+  scGroup.add(coreBlock);
+
+  // 塊體 4：頂部幾何方首塊（斜切稜角倒角）
+  const headBlock = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.72, 0.65), sculptureMat);
+  headBlock.position.set(-0.75, 2.08, 0.18);
+  headBlock.rotation.z = -0.18;
+  headBlock.rotation.y = 0.28;
+  headBlock.castShadow = true;
+  scGroup.add(headBlock);
+
+  details3DGroup.add(scGroup);
+
+  collisionBoxes.push({
+    minX: scX - 2.8, maxX: scX + 2.8,
+    minZ: scZ - 2.0, maxZ: scZ + 2.0,
+    type: 'landmark', name: '中正園太極幾何裝置藝術'
+  });
+
+  // 5. 迎賓車道黃黑相間橡膠減速坡（Speed Bump，依照片 1、2 還原）
+  const bumpX = pxToWorldX(996);
+  const bumpZ = pyToWorldZ(825);
+  const bumpGroup = new THREE.Group();
+  bumpGroup.position.set(bumpX, 0.14, bumpZ);
+  bumpGroup.rotation.y = 0.18;
+
+  const bumpLen = 5.6;
+  const numSegments = 14;
+  const segW = bumpLen / numSegments;
+  const yellowMat = new THREE.MeshStandardMaterial({ color: 0xdeb814, roughness: 0.5 });
+  const blackRubberMat = new THREE.MeshStandardMaterial({ color: 0x1f2124, roughness: 0.7 });
+
+  for (let s = 0; s < numSegments; s++) {
+    const isYellow = (s % 2 === 0);
+    const seg = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.24, 0.24, segW, 8),
+      isYellow ? yellowMat : blackRubberMat
+    );
+    seg.rotation.x = Math.PI / 2;
+    seg.scale.set(1.0, 0.22, 1.0);
+    seg.position.set(0, 0.04, -bumpLen / 2 + (s + 0.5) * segW);
+    seg.receiveShadow = true;
+    bumpGroup.add(seg);
+  }
+  details3DGroup.add(bumpGroup);
+
+  // 6. 「禁止進入」圓形紅底白色橫槓反光標誌（依照片 1 還原）
+  const signPole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.035, 0.035, 2.4, 8),
+    new THREE.MeshStandardMaterial({ color: 0xc8ced4, metalness: 0.6, roughness: 0.3 })
+  );
+  signPole.position.set(bumpX - 3.4, 1.2, bumpZ - 0.5);
+  signPole.castShadow = true;
+  details3DGroup.add(signPole);
+
+  const signDisc = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.34, 0.34, 0.025, 24),
+    new THREE.MeshStandardMaterial({ color: 0xd32f2f, roughness: 0.4 })
+  );
+  signDisc.position.set(bumpX - 3.4, 2.35, bumpZ - 0.5);
+  signDisc.rotation.z = Math.PI / 2;
+  signDisc.rotation.x = Math.PI / 2 + 0.18;
+  details3DGroup.add(signDisc);
+
+  const signBar = new THREE.Mesh(
+    new THREE.BoxGeometry(0.48, 0.028, 0.13),
+    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 })
+  );
+  signBar.position.set(bumpX - 3.4, 2.35, bumpZ - 0.48);
+  signBar.rotation.y = -0.18;
+  details3DGroup.add(signBar);
+
+  // 7. 至聖樓側翼洗石子矮駁坎與修剪整齊金露花綠籬（照片 1、5 左側）
+  const curbWallMat = new THREE.MeshStandardMaterial({ color: 0x948f87, roughness: 0.85 });
+  const goldenHedgeMat = new THREE.MeshStandardMaterial({ color: 0x8cb836, roughness: 0.8 });
+
+  const hedgeWall = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.42, 32.0), curbWallMat);
+  hedgeWall.position.set(pxToWorldX(972), 0.35, pyToWorldZ(790));
+  hedgeWall.receiveShadow = true;
+  hedgeWall.castShadow = true;
+  details3DGroup.add(hedgeWall);
+
+  const goldenHedge = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.52, 31.6), goldenHedgeMat);
+  goldenHedge.position.set(pxToWorldX(972), 0.78, pyToWorldZ(790));
+  goldenHedge.castShadow = true;
+  details3DGroup.add(goldenHedge);
 
   // C. 教職員斜向停車場（整齊分佈於中正樓正面迎賓廣場 px: 1018..1078, py: 540..745）
-  const carColors = [0xf5f5f5, 0x2c333d, 0xd8dce0, 0x8c2d2d, 0x364f6b, 0xfafafa, 0x45494e];
+  // 依照片 1 特寫：第一位停放深邃金屬黑轎車（AKZ-1355 Honda Civic）、第二位極光銀轎車
+  const carColors = [0x151618, 0xd4d8dc, 0xf5f5f5, 0x8c2d2d, 0x364f6b, 0x45494e, 0x2c333d];
   const lineMat = new THREE.MeshBasicMaterial({ color: 0xf2efe9 });
   [-1, 1].forEach((side) => {
     const rowPx = 1048 + side * 26;
@@ -1426,8 +1649,8 @@ function buildGateAndEastPlazaDetails() {
         const carGroup = new THREE.Group();
         const bodyMat = new THREE.MeshStandardMaterial({
           color: carColors[(i + (side > 0 ? 2 : 0)) % carColors.length],
-          roughness: 0.35,
-          metalness: 0.25
+          roughness: 0.30,
+          metalness: 0.35
         });
         const carBody = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.76, 1.72), bodyMat);
         carBody.position.y = 0.55;
@@ -1436,7 +1659,7 @@ function buildGateAndEastPlazaDetails() {
 
         const carCabin = new THREE.Mesh(
           new THREE.BoxGeometry(2.0, 0.60, 1.50),
-          new THREE.MeshStandardMaterial({ color: 0x2b3440, roughness: 0.2, metalness: 0.5 })
+          new THREE.MeshStandardMaterial({ color: 0x24282c, roughness: 0.2, metalness: 0.5 })
         );
         carCabin.position.set(-0.15, 1.10, 0);
         carGroup.add(carCabin);
@@ -5602,12 +5825,15 @@ function handleTestHash() {
     state.cameraTween = null;
     controls.update();
   } else if (h === '#test=garden') {
-    selectBuilding('zhongzheng_garden', 'ALL', null, true);
-    if (state.cameraTween) {
-      camera.position.copy(state.cameraTween.endCam);
-      controls.target.copy(state.cameraTween.endTarget);
-      state.cameraTween = null;
-    }
+    // 依實拍照片 (media_1793575277815~824) 警衛室往中正園現代幾何太極石雕與台灣欒樹景觀島特寫視角
+    document.getElementById('right-panel')?.classList.add('collapsed');
+    camera.fov = 42;
+    camera.updateProjectionMatrix();
+    const scCenter = new THREE.Vector3(pxToWorldX(1048) - 6.8, 1.6, pyToWorldZ(815) + 9.2);
+    camera.position.set(scCenter.x - 14, 4.2, scCenter.z + 16);
+    controls.target.copy(scCenter);
+    state.cameraTween = null;
+    controls.update();
   } else if (h === '#test=gate') {
     // 校門口警衛室、高聳簍空校名石柱碑與自動伸縮鐵門特寫視角
     document.getElementById('right-panel')?.classList.add('collapsed');
