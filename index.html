@@ -4282,6 +4282,8 @@ const animatedAnimals = {
   magpies: []
 };
 
+let ferrisWheelAnim = null;
+
 const campusNpcs = {
   sports: [],
   walkway: []
@@ -7505,45 +7507,53 @@ function buildSurroundingSkyline() {
     details3DGroup.add(tMesh);
   });
 
-  // 3. 更遠方西南位置 (-X 南方、-Z 西方) 之兒童新樂園摩天輪 (px: -480, py: -380)
+  // 3. 遠方西南南位置 (-X 南方、-Z 西方微偏，精確 SSW 201.5° 方位) 之兒童新樂園摩天輪 (px: -550, py: 45)
+  // 依真實地理座標定位：中正高中向南約 1.5 公里、微偏西 0.35 公里處
   // 完整渲染：中央旋轉軸心、雙層外圈鋼骨、24 根放射狀輻條支架、A 字型支撐立柱與 24 個彩虹漸層色彩車廂 (Gondolas)
-  const wheelX = pxToWorldX(-480);
-  const wheelZ = pyToWorldZ(-380);
-  const wheelCenterY = 46.0;
-  const wheelRadius = 32.0;
-  const wheelGroup = new THREE.Group();
-  wheelGroup.position.set(wheelX, wheelCenterY, wheelZ);
-  wheelGroup.rotation.y = 0.42;
+  const wheelX = pxToWorldX(-550);
+  const wheelZ = pyToWorldZ(45);
+  const wheelCenterY = 48.0;
+  const wheelRadius = 34.0;
+
+  const ferrisRoot = new THREE.Group();
+  ferrisRoot.position.set(wheelX, 0, wheelZ);
+  ferrisRoot.rotation.y = -0.68; // 輪盤正面朝向校園中心視野
 
   const steelMat = new THREE.MeshStandardMaterial({ color: 0xf5f7fa, metalness: 0.35, roughness: 0.3 });
   const hubMat = new THREE.MeshStandardMaterial({ color: 0x2471a3, metalness: 0.4, roughness: 0.3 });
 
+  // 旋轉輪盤組
+  const wheelGroup = new THREE.Group();
+  wheelGroup.position.set(0, wheelCenterY, 0);
+
   // 雙層外圈鋼環 (外環與內環)
-  const outerRim = new THREE.Mesh(new THREE.TorusGeometry(wheelRadius, 0.55, 10, 48), steelMat);
-  const innerRim = new THREE.Mesh(new THREE.TorusGeometry(wheelRadius * 0.82, 0.42, 8, 48), steelMat);
+  const outerRim = new THREE.Mesh(new THREE.TorusGeometry(wheelRadius, 0.58, 10, 48), steelMat);
+  const innerRim = new THREE.Mesh(new THREE.TorusGeometry(wheelRadius * 0.82, 0.44, 8, 48), steelMat);
   wheelGroup.add(outerRim, innerRim);
 
   // 中央主軸轂心
-  const centerHub = new THREE.Mesh(new THREE.CylinderGeometry(2.8, 2.8, 2.6, 18), hubMat);
+  const centerHub = new THREE.Mesh(new THREE.CylinderGeometry(2.9, 2.9, 2.8, 18), hubMat);
   centerHub.rotation.x = Math.PI / 2;
   wheelGroup.add(centerHub);
 
   // 24 根放射鋼構輻條 (Spokes) 與 24 座彩虹車廂
   const spokeMat = new THREE.MeshStandardMaterial({ color: 0xdde4eb, roughness: 0.4 });
   const gondolaCount = 24;
+  const wheelGondolas = [];
+
   for (let i = 0; i < gondolaCount; i++) {
     const angle = (i / gondolaCount) * Math.PI * 2;
     const cosA = Math.cos(angle);
     const sinA = Math.sin(angle);
 
     // 鋼構輻條
-    const spoke = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, wheelRadius, 6), spokeMat);
+    const spoke = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, wheelRadius, 6), spokeMat);
     spoke.position.set((wheelRadius / 2) * cosA, (wheelRadius / 2) * sinA, 0);
     spoke.rotation.z = angle - Math.PI / 2;
     wheelGroup.add(spoke);
 
     // 環間桁架交叉斜撐
-    const crossBar = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, wheelRadius * 0.18), spokeMat);
+    const crossBar = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.20, wheelRadius * 0.18), spokeMat);
     crossBar.position.set((wheelRadius * 0.91) * cosA, (wheelRadius * 0.91) * sinA, 0);
     wheelGroup.add(crossBar);
 
@@ -7556,43 +7566,46 @@ function buildSurroundingSkyline() {
     gondola.position.set(wheelRadius * cosA, wheelRadius * sinA, 0);
 
     // 車廂主艙體 (六角柱圓頂流線觀景艙)
-    const cabin = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.25, 2.4, 8), gondolaMat);
-    cabin.position.y = -1.2;
+    const cabin = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.3, 2.5, 8), gondolaMat);
+    cabin.position.y = -1.25;
     gondola.add(cabin);
 
     // 觀景窗橫條玻璃環
     const windowMat = new THREE.MeshStandardMaterial({ color: 0x1a2e40, roughness: 0.1, metalness: 0.8 });
-    const cabinWindow = new THREE.Mesh(new THREE.CylinderGeometry(1.36, 1.30, 0.9, 8), windowMat);
-    cabinWindow.position.y = -1.15;
+    const cabinWindow = new THREE.Mesh(new THREE.CylinderGeometry(1.42, 1.35, 0.95, 8), windowMat);
+    cabinWindow.position.y = -1.2;
     gondola.add(cabinWindow);
 
     // 吊掛桿臂
-    const hanger = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1.1, 6), steelMat);
-    hanger.position.y = -0.55;
+    const hanger = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1.15, 6), steelMat);
+    hanger.position.y = -0.58;
     gondola.add(hanger);
 
     wheelGroup.add(gondola);
+    wheelGondolas.push(gondola);
   }
-  details3DGroup.add(wheelGroup);
+  ferrisRoot.add(wheelGroup);
 
   // A 字型雙向四柱斜向主支架與基座
   const legMat = new THREE.MeshStandardMaterial({ color: 0x78909c, metalness: 0.45, roughness: 0.35 });
   const baseMat = new THREE.MeshStandardMaterial({ color: 0x546e7a, roughness: 0.7 });
   [-1, 1].forEach((dirX) => {
     [-1, 1].forEach((dirZ) => {
-      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.68, 1.15, wheelCenterY + 4, 8), legMat);
-      leg.position.set(wheelX + dirX * 11.5, wheelCenterY / 2, wheelZ + dirZ * 5.2);
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 1.25, wheelCenterY + 4, 8), legMat);
+      leg.position.set(dirX * 12.0, wheelCenterY / 2, dirZ * 4.8);
       leg.rotation.z = -dirX * 0.24;
       leg.rotation.x = dirZ * 0.11;
-      details3DGroup.add(leg);
+      ferrisRoot.add(leg);
     });
   });
 
   // 支架底座承台
-  const wheelBase = new THREE.Mesh(new THREE.BoxGeometry(32, 2.5, 18), baseMat);
-  wheelBase.position.set(wheelX, 1.25, wheelZ);
-  wheelBase.rotation.y = 0.42;
-  details3DGroup.add(wheelBase);
+  const wheelBase = new THREE.Mesh(new THREE.BoxGeometry(34, 2.5, 18), baseMat);
+  wheelBase.position.set(0, 1.25, 0);
+  ferrisRoot.add(wheelBase);
+
+  details3DGroup.add(ferrisRoot);
+  ferrisWheelAnim = { wheelGroup, gondolas: wheelGondolas };
 }
 
 function buildRoofSolarAndBrickStuds() {
@@ -9973,6 +9986,15 @@ function animate(now) {
     b.headGroup.rotation.y = Math.sin(now * 0.0016 + b.seed) * 0.38;
   });
 
+  // 西南南兒童新樂園摩天輪緩慢旋轉與車廂重力垂直自平衡
+  if (ferrisWheelAnim) {
+    const wheelRot = now * 0.00018;
+    ferrisWheelAnim.wheelGroup.rotation.z = wheelRot;
+    ferrisWheelAnim.gondolas.forEach((g) => {
+      g.rotation.z = -wheelRot;
+    });
+  }
+
   // 運動學生群（田徑奔跑、排球起跳與扣球、籃球跳投與運球）
   campusNpcs.sports.forEach((s) => {
     if (s.role === 'runner') {
@@ -10107,6 +10129,16 @@ function handleTestHash() {
     camera.updateProjectionMatrix();
     camera.position.set(pxToWorldX(1032), 2.2, pyToWorldZ(928));
     controls.target.set(pxToWorldX(1040), 0.55, pyToWorldZ(916));
+    state.cameraTween = null;
+    controls.update();
+  } else if (h === '#test=ferris') {
+    // 遠眺西南南（SSW 方位）兒童新樂園摩天輪特寫視角
+    document.getElementById('right-panel')?.classList.add('collapsed');
+    camera.fov = 42;
+    camera.updateProjectionMatrix();
+    const wheelCenter = new THREE.Vector3(pxToWorldX(-550), 48.0, pyToWorldZ(45));
+    camera.position.set(pxToWorldX(320), 22.0, pyToWorldZ(240));
+    controls.target.copy(wheelCenter);
     state.cameraTween = null;
     controls.update();
   } else if (h === '#test=banyan') {
