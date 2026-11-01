@@ -5702,4 +5702,6 @@ function handleTestHash() {
 handleTestHash();
 window.addEventListener('hashchange', handleTestHash);
 
+console.log('%c3D Campus Map by Max CHAN', 'color: #8ce0b5; font-weight: bold; font-size: 12px;');
+
 requestAnimationFrame(animate);

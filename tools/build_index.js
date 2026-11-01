@@ -303,6 +303,7 @@ const html = `<!DOCTYPE html>
   <footer id="campus-footer">
     <span>操作：滑鼠拖曳旋轉或平移（右上角可切換） · 滾輪縮放 · WASD 移動 · 點擊「最佳全覽」回到全景構圖</span>
     <span style="display:flex;align-items:center;gap:12px;">
+      <span class="footer-author" style="opacity:0.65;font-size:10.5px;letter-spacing:0.3px;">作者：Max CHAN</span>
       <button type="button" id="open-gesture-btn" class="footer-btn">操作說明</button>
       <button type="button" id="open-copyright-btn" class="footer-btn">關於本系統與資料來源</button>
     </span>
@@ -335,6 +336,7 @@ const html = `<!DOCTYPE html>
       </div>
       <p><b>學校名稱：</b>臺北市立中正高級中學（Taipei Municipal Zhongzheng Senior High School）</p>
       <p><b>學校地址：</b>112046 臺北市北投區文林北路 77 號</p>
+      <p><b>作者：</b>Max CHAN</p>
       <p><b>空間與配置基準：</b>依據 115 學年度班級教室配置圖（115.8.12）、校園平面圖與 214 教室實景照片建置。400 公尺藍色 PU 標準田徑場換算比例尺（1 px = 0.27 m，標準樓高 3.6 m）。</p>
       <p><b>3D 引擎技術：</b>基於 WebGL / Three.js、程序化建築與運動場建模，以及 Pillow + NumPy 尺度空間樹冠偵測與 <code>THREE.InstancedMesh</code> 批次渲染。</p>
       <button type="button" class="primary-btn" id="ok-copyright-btn">了解並關閉</button>
