@@ -4,7 +4,8 @@ import os
 
 chrome_path = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 shots = [
-    ('shot_ecopond.png', 'file:///Users/maxchan/Desktop/3D/index.html#test=ecopond')
+    ('shot_track.png', 'file:///Users/maxchan/Desktop/3D/index.html#test=track'),
+    ('shot_courts.png', 'file:///Users/maxchan/Desktop/3D/index.html#test=courts')
 ]
 
 for filename, url in shots:
@@ -19,6 +20,8 @@ for filename, url in shots:
         '--allow-file-access-from-files',
         '--user-data-dir=/tmp/chrome_ud_verify',
         '--window-size=1280,800',
+        '--virtual-time-budget=4000',
+        '--run-all-compositor-stages-before-draw',
         f'--screenshot={out_path}',
         url
     ]

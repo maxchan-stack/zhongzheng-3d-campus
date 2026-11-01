@@ -6899,19 +6899,47 @@ function buildCampusSportsAndWalkwayNPCs() {
     return { root, headGroup, leftArm, rightArm, leftLeg, rightLeg };
   }
 
-  // === 零散分佈：田徑場運動學生（400 公尺超大範圍僅零散 4 人，彼此間隔 60～100 公尺）===
-  const trackRunners = [
-    { px: 360, py: 132, yaw: Math.PI / 2, shirt: peBlueShirtMat, name: '田徑隊同學（北跑道慢跑）' },
-    { px: 420, py: 444, yaw: -Math.PI / 2, shirt: peOrangeShirtMat, name: '長跑社同學（南跑道晨操）' },
-    { px: 240, py: 288, yaw: 0, shirt: peWhiteShirtMat, name: '高二體育生（西彎道快走）' },
-    { px: 380, py: 280, yaw: 0.5, shirt: peBlueShirtMat, pose: 'stretch', name: '草坪伸展同學' }
+  // === 零散分佈：田徑場運動學生（400 公尺超大範圍均勻散佈 17 人：跑道跑者 10 人、中央草坪足球與伸展 7 人）===
+  const trackAthletes = [
+    // 1. 北直線跑道（py: 132，X 朝東配速跑，前後間隔約 30～40 公尺）
+    { px: 320, py: 132, yaw: Math.PI / 2, shirt: peBlueShirtMat, role: 'runner', pose: 'run', name: '田徑隊同學（北跑道節奏跑）', dialog: '北跑道視野真好，維持每圈 80 秒配速！' },
+    { px: 410, py: 132, yaw: Math.PI / 2, shirt: peWhiteShirtMat, role: 'runner', pose: 'run', name: '體育班學長（北跑道均速跑）', dialog: '呼吸要兩吸一呼，步伐自然邁開！' },
+    { px: 505, py: 132, yaw: Math.PI / 2, shirt: peOrangeShirtMat, role: 'runner', pose: 'run', name: '高二田徑隊員（北跑道衝刺練習）', dialog: '最後一百公尺核心收緊，全力加速！' },
+
+    // 2. 南直線跑道（py: 444，X 朝西跑步，前後間隔約 30～40 公尺）
+    { px: 515, py: 444, yaw: -Math.PI / 2, shirt: peOrangeShirtMat, role: 'runner', pose: 'run', name: '長跑社同學（南跑道晨跑）', dialog: '早晨空氣清新，已經跑完第五圈了。' },
+    { px: 415, py: 444, yaw: -Math.PI / 2, shirt: peBlueShirtMat, role: 'runner', pose: 'run', name: '體育課學生（南跑道慢跑測驗）', dialog: '還有兩圈，穩住配速就能拿滿分！' },
+    { px: 315, py: 444, yaw: -Math.PI / 2, shirt: peWhiteShirtMat, role: 'runner', pose: 'run', name: '高一新生（南跑道自主練習）', dialog: '藍色 PU 跑道跑起來彈性真好，膝蓋完全不吃力。' },
+
+    // 3. 西側半圓彎道（沿彎道切線方向）
+    { px: 238, py: 235, yaw: 0.35, shirt: peBlueShirtMat, role: 'runner', pose: 'run', name: '短跑選手（西彎道入彎）', dialog: '入彎道身體重心要微向內傾斜！' },
+    { px: 242, py: 345, yaw: -0.35, shirt: peOrangeShirtMat, role: 'runner', pose: 'run', name: '長跑隊員（西彎道出彎）', dialog: '彎道維持步伐節奏，出彎馬上順勢擺臂！' },
+
+    // 4. 東側半圓彎道（沿彎道切線方向）
+    { px: 586, py: 235, yaw: Math.PI - 0.35, shirt: peWhiteShirtMat, role: 'runner', pose: 'run', name: '田徑學妹（東彎道入彎）', dialog: '跟著前方的節奏，慢慢將速度提上來！' },
+    { px: 582, py: 345, yaw: Math.PI + 0.35, shirt: peBlueShirtMat, role: 'runner', pose: 'run', name: '體育生（東彎道調整）', dialog: '維持住擺臂幅度，調整呼吸節奏！' },
+
+    // 5. 中央草坪足球傳接小組 A（西側草坪）
+    { px: 350, py: 260, yaw: 0.8, shirt: peBlueShirtMat, role: 'soccer', pose: 'dribble', name: '足球隊隊長（草坪短傳練習）', dialog: '注意右腳內側推傳球的準確度！' },
+    { px: 385, py: 285, yaw: 0.8 - Math.PI, shirt: peWhiteShirtMat, role: 'soccer', pose: 'dribble', name: '足球隊隊員（草坪迎球接應）', dialog: '球傳得恰到好處，直接迎球推傳回去！' },
+
+    // 6. 中央草坪足球傳接小組 B（東側草坪）
+    { px: 450, py: 300, yaw: -0.7, shirt: peOrangeShirtMat, role: 'soccer', pose: 'dribble', name: '足球社同學（草坪長傳策應）', dialog: '看好落點，長傳前場空檔！' },
+    { px: 485, py: 325, yaw: -0.7 + Math.PI, shirt: peBlueShirtMat, role: 'soccer', pose: 'dribble', name: '足球社社員（停球抽射練習）', dialog: '胸口停球順勢起腳，完美控球！' },
+
+    // 7. 中央草坪角隅伸展與體能暖身同學
+    { px: 410, py: 225, yaw: 0, shirt: peOrangeShirtMat, role: 'stretcher', pose: 'stretch', name: '長跑選手（草坪壓腿伸展）', dialog: '跑完一定要徹底拉伸小腿與大腿肌群。' },
+    { px: 415, py: 350, yaw: Math.PI, shirt: peWhiteShirtMat, role: 'stretcher', pose: 'stretch', name: '體育班同學（草坪弓箭步熱身）', dialog: '充分熱身能有效預防運動傷害！' },
+    { px: 340, py: 320, yaw: 0.5, shirt: peBlueShirtMat, role: 'runner', pose: 'run', name: '田徑學員（草坪高抬腿暖身）', dialog: '原地高抬腿暖身，啟動核心肌群！' }
   ];
 
-  trackRunners.forEach((cfg) => {
-    const isStretch = cfg.pose === 'stretch';
+  trackAthletes.forEach((cfg) => {
+    const isStretch = cfg.role === 'stretcher';
+    const isSoccer = cfg.role === 'soccer';
+    const isRunner = cfg.role === 'runner';
     const h = createHumanoid({
-      role: isStretch ? 'stretch' : 'student_run',
-      poseType: isStretch ? 'stretch' : 'run',
+      role: cfg.role,
+      poseType: cfg.pose,
       shirtMat: cfg.shirt,
       bottomMat: peShortsNavyMat,
       hasBag: false
@@ -6924,72 +6952,78 @@ function buildCampusSportsAndWalkwayNPCs() {
 
     campusNpcs.sports.push({
       ...h,
-      role: isStretch ? 'stretcher' : 'runner',
+      role: cfg.role,
       wx, wz,
       baseY: 0.35,
-      speed: isStretch ? 0.005 : 0.016,
-      amp: isStretch ? 0.2 : 0.85,
+      speed: isRunner ? 0.016 : (isSoccer ? 0.008 : 0.005),
+      amp: isRunner ? 0.85 : 0.35,
       seed: Math.random() * 50
     });
 
     collisionCircles.push({
       x: wx, z: wz, r: 0.55, type: 'npc',
       name: cfg.name,
-      dialog: isStretch ? '運動前要充分做好伸展拉筋！' : '田徑場空氣真好，正在按配速練習！'
+      dialog: cfg.dialog
     });
   });
 
-  // === 零散分佈：排球場（僅第 3 面球場有 2 人輕鬆對傳練習，其餘 4 面完全空曠）===
+  // 草坪足球兩顆（黑白斑紋皮革質感）
+  function createCampusSoccerBall(px, py, y = 0.22) {
+    const ballGroup = new THREE.Group();
+    const wx = pxToWorldX(px);
+    const wz = pyToWorldZ(py);
+    ballGroup.position.set(wx, y, wz);
+    const baseMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(0.20, 12, 12),
+      new THREE.MeshStandardMaterial({ color: 0xf4f4f4, roughness: 0.35 })
+    );
+    baseMesh.castShadow = true;
+    ballGroup.add(baseMesh);
+
+    const patchMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.5 });
+    const patches = [
+      [0, 0.19, 0],
+      [0.15, 0.07, 0.09],
+      [-0.15, 0.07, 0.09],
+      [0, 0.07, -0.18],
+      [0.10, -0.13, 0.10],
+      [-0.10, -0.13, 0.10]
+    ];
+    patches.forEach(([pxOff, pyOff, pzOff]) => {
+      const p = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.02), patchMat);
+      p.position.set(pxOff, pyOff, pzOff);
+      p.lookAt(pxOff * 2, pyOff * 2, pzOff * 2);
+      ballGroup.add(p);
+    });
+    details3DGroup.add(ballGroup);
+  }
+  createCampusSoccerBall(367, 272);
+  createCampusSoccerBall(467, 312);
+
+  // === 零散分佈：排球場（分佈於第 1、2、4 面球場及看台，共 10 人，避免單一場地扎堆）===
   const vbCourt = [
-    { px: 834, py: 310.5, y: 0.35, yaw: 0, pose: 'pass', name: '排球社同學 A' },
-    { px: 854, py: 310.5, y: 0.35, yaw: Math.PI, pose: 'pass', name: '排球社同學 B' }
+    // 1. 第 1 面球場（py: 189.5，雙人基礎墊球對傳練習）
+    { px: 835, py: 189.5, y: 0.35, yaw: 0, pose: 'pass', shirt: peWhiteShirtMat, role: 'volleyball', name: '排球隊高一隊員（北半場低手墊球）', dialog: '膝蓋微彎重心壓低，手臂打平成平面！' },
+    { px: 853, py: 189.5, y: 0.35, yaw: Math.PI, pose: 'pass', shirt: peBlueShirtMat, role: 'volleyball', name: '排球隊同學（南半場對傳練習）', dialog: '墊球弧度很好，繼續保持穩定對傳！' },
+
+    // 2. 第 2 面球場（py: 250.0，4 人實戰扣球攔網攻防）
+    { px: 839, py: 250.0, y: 1.15, isAir: true, yaw: 0, pose: 'shoot', shirt: peOrangeShirtMat, role: 'volleyball', name: '排球隊主攻手（起跳暴扣）', dialog: '看準二傳舉球最高點，全力扣殺！' },
+    { px: 835, py: 247.0, y: 0.35, yaw: 0.35, pose: 'pass', shirt: peWhiteShirtMat, role: 'volleyball', name: '排球隊舉球員（精準二傳托球）', dialog: '托球到位，抓好起跳節奏！' },
+    { px: 849, py: 250.0, y: 0.85, isAir: true, yaw: Math.PI, pose: 'shoot', shirt: peBlueShirtMat, role: 'volleyball', name: '副攻手（前排雙手攔網）', dialog: '雙手伸直封死直線球路！' },
+    { px: 856, py: 252.0, y: 0.35, yaw: Math.PI, pose: 'pass', shirt: peOrangeShirtMat, role: 'volleyball', name: '自由球員（後排救球防守）', dialog: '後排我包辦，隨時準備補位魚躍！' },
+
+    // 3. 第 4 面球場（py: 370.0，發球與接球陣型練習）
+    { px: 825, py: 370.0, y: 0.35, yaw: 0, pose: 'pass', shirt: peBlueShirtMat, role: 'volleyball', name: '發球選手（端線跳躍發球）', dialog: '盯準底角落點，發出強勁平衝球！' },
+    { px: 853, py: 366.0, y: 0.35, yaw: Math.PI, pose: 'pass', shirt: peWhiteShirtMat, role: 'volleyball', name: '接發手 A（重心降低接發）', dialog: '這球帶著強烈旋轉，手腕一定要繃緊！' },
+    { px: 853, py: 374.0, y: 0.35, yaw: Math.PI, pose: 'pass', shirt: peBlueShirtMat, role: 'volleyball', name: '接發手 B（後排協防呼應）', dialog: '我來！交給我處理！' },
+
+    // 4. 水泥階梯看台場邊（休息與計分補給同學）
+    { px: 775, py: 420.0, y: 0.85, yaw: Math.PI / 2, pose: 'stretch', shirt: peWhiteShirtMat, role: 'stretcher', name: '排球社經理（看台計分與補給）', dialog: '大家練習辛苦了，場邊隨時有毛巾與運動飲料！' }
   ];
 
   vbCourt.forEach((cfg) => {
     const h = createHumanoid({
-      role: 'volleyball',
-      poseType: cfg.pose,
-      shirtMat: peWhiteShirtMat,
-      bottomMat: peShortsNavyMat,
-      hasBag: false
-    });
-    const wx = pxToWorldX(cfg.px);
-    const wz = pyToWorldZ(cfg.py);
-    h.root.position.set(wx, cfg.y, wz);
-    h.root.rotation.y = cfg.yaw;
-    details3DGroup.add(h.root);
-
-    campusNpcs.sports.push({
-      ...h,
-      role: 'volleyball',
-      wx, wz,
-      baseY: cfg.y,
-      isAir: false,
-      seed: Math.random() * 50
-    });
-
-    collisionCircles.push({
-      x: wx, z: wz, r: 0.55, type: 'npc',
-      name: cfg.name,
-      dialog: '手腕打平、壓低重心，接得漂亮！'
-    });
-  });
-
-  // 對傳之排球
-  const vbBall = new THREE.Mesh(new THREE.SphereGeometry(0.20, 10, 10), volleyballMat);
-  vbBall.position.set(pxToWorldX(844), 2.1, pyToWorldZ(310.5));
-  vbBall.castShadow = true;
-  details3DGroup.add(vbBall);
-
-  // === 零散分佈：籃球場（僅 2 人分別在西區與東區自主練球，相隔 40 公尺）===
-  const bbCourt = [
-    { px: 950, py: 225, y: 0.35, yaw: 0.4, pose: 'dribble', shirt: peOrangeShirtMat, name: '籃球社同學（西區自主運球）' },
-    { px: 1055, py: 285, y: 1.25, yaw: 1.2, pose: 'shoot', shirt: peBlueShirtMat, name: '高三學長（東區自主跳投）' }
-  ];
-
-  bbCourt.forEach((cfg) => {
-    const h = createHumanoid({
-      role: 'basketball',
+      role: cfg.role,
       poseType: cfg.pose,
       shirtMat: cfg.shirt,
       bottomMat: peShortsNavyMat,
@@ -7003,24 +7037,102 @@ function buildCampusSportsAndWalkwayNPCs() {
 
     campusNpcs.sports.push({
       ...h,
-      role: 'basketball',
+      role: cfg.role,
       wx, wz,
       baseY: cfg.y,
-      isAir: cfg.y > 0.5,
+      isAir: !!cfg.isAir,
       seed: Math.random() * 50
     });
 
     collisionCircles.push({
       x: wx, z: wz, r: 0.55, type: 'npc',
       name: cfg.name,
-      dialog: cfg.pose === 'shoot' ? '看這球三分弧度，空心入網！' : '練好基本運球突破步伐！'
+      dialog: cfg.dialog
     });
   });
 
-  const bbBall = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 12), basketballMat);
-  bbBall.position.set(pxToWorldX(948), 0.70, pyToWorldZ(225));
-  bbBall.castShadow = true;
-  details3DGroup.add(bbBall);
+  // 三面活躍排球場之空中排球
+  const vbBallPositions = [
+    { px: 844, py: 189.5, y: 2.10 },
+    { px: 842, py: 250.0, y: 2.75 },
+    { px: 838, py: 368.5, y: 2.35 }
+  ];
+  vbBallPositions.forEach((bPos) => {
+    const vb = new THREE.Mesh(new THREE.SphereGeometry(0.20, 10, 10), volleyballMat);
+    vb.position.set(pxToWorldX(bPos.px), bPos.y, pyToWorldZ(bPos.py));
+    vb.castShadow = true;
+    details3DGroup.add(vb);
+  });
+
+  // === 零散分佈：籃球場（分佈於 4 面球場，共 12 人：半場鬥牛 4 人、跳投卡位 3 人、快攻上籃 3 人、罰球與休息 2 人）===
+  const bbCourt = [
+    // 1. 西區中央球場（px: 950, py: 225，2 on 2 激烈鬥牛）
+    { px: 943, py: 225, y: 0.35, yaw: 0.5, pose: 'dribble', shirt: peOrangeShirtMat, role: 'basketball_dribble', name: '籃球隊控球後衛（胯下運球變向切入）', dialog: '看我的急停變向，拉開防守身位！' },
+    { px: 947, py: 226, y: 0.35, yaw: -2.6, pose: 'pass', shirt: peBlueShirtMat, role: 'volleyball', name: '得分後衛（外線貼身嚴防）', dialog: '休想輕易切入禁區，看緊你的突破路線！' },
+    { px: 938, py: 220, y: 0.35, yaw: 0.25, pose: 'dribble', shirt: peWhiteShirtMat, role: 'basketball_dribble', name: '射手學長（底角空檔要球）', dialog: '這裡有大空檔，隨時準備外線出手！' },
+    { px: 954, py: 224, y: 0.35, yaw: -1.8, pose: 'pass', shirt: peBlueShirtMat, role: 'volleyball', name: '大前鋒（禁區要位單打）', dialog: '把球吊進來，內線優勢在我！' },
+
+    // 2. 西區北側球場（px: 950, py: 165，三分跳投與卡位練習）
+    { px: 937, py: 165, y: 1.25, isAir: true, yaw: 0, pose: 'shoot', shirt: peBlueShirtMat, role: 'basketball', name: '三分射手（外線拔起跳投）', dialog: '手腕完美跟隨動作，這球必進！' },
+    { px: 958, py: 165, y: 0.35, yaw: Math.PI, pose: 'pass', shirt: peOrangeShirtMat, role: 'volleyball', name: '中鋒學弟（籃下卡位衝搶籃板）', dialog: '擋人卡位，籃板球是我的！' },
+    { px: 947, py: 161, y: 0.35, yaw: -1.3, pose: 'pass', shirt: peWhiteShirtMat, role: 'volleyball', name: '前鋒同學（罰球線策應傳導）', dialog: '球流動起來，製造最好的出手時機！' },
+
+    // 3. 東區南側球場（px: 1055, py: 285，快攻反擊上籃）
+    { px: 1063, py: 285, y: 1.35, isAir: true, yaw: 0, pose: 'shoot', shirt: peOrangeShirtMat, role: 'basketball', name: '快攻前鋒（三步歐洲步騰空挑籃）', dialog: '反擊快攻，空中換手挑籃！' },
+    { px: 1053, py: 286, y: 0.35, yaw: 0.1, pose: 'run', role: 'runner', shirt: peBlueShirtMat, name: '防守後衛（全速回防干擾）', dialog: '全力回防，追上去封蓋！' },
+    { px: 1042, py: 283, y: 0.35, yaw: 0.25, pose: 'pass', shirt: peWhiteShirtMat, role: 'volleyball', name: '後衛同學（後場精準長傳推進）', dialog: '一箭穿心長傳，好球！' },
+
+    // 4. 東區北側球場（px: 1055, py: 165，定點罰球與場邊放鬆）
+    { px: 1050, py: 165, y: 0.35, yaw: 0, pose: 'pass', shirt: peWhiteShirtMat, role: 'volleyball', name: '副隊長（定點罰球練習）', dialog: '深呼吸兩次，維持穩定出手手感！' },
+    { px: 1033, py: 160, y: 0.35, yaw: 0.7, pose: 'stretch', shirt: peBlueShirtMat, role: 'stretcher', name: '體育課同學（場邊休息補充水分）', dialog: '打了一節全場好過癮，休息一下再戰！' }
+  ];
+
+  bbCourt.forEach((cfg) => {
+    const isRunner = cfg.role === 'runner';
+    const h = createHumanoid({
+      role: cfg.role,
+      poseType: cfg.pose,
+      shirtMat: cfg.shirt,
+      bottomMat: peShortsNavyMat,
+      hasBag: false
+    });
+    const wx = pxToWorldX(cfg.px);
+    const wz = pyToWorldZ(cfg.py);
+    h.root.position.set(wx, cfg.y, wz);
+    h.root.rotation.y = cfg.yaw;
+    details3DGroup.add(h.root);
+
+    campusNpcs.sports.push({
+      ...h,
+      role: cfg.role,
+      wx, wz,
+      baseY: cfg.y,
+      isAir: !!cfg.isAir,
+      speed: isRunner ? 0.016 : 0.008,
+      amp: isRunner ? 0.85 : 0.35,
+      seed: Math.random() * 50
+    });
+
+    collisionCircles.push({
+      x: wx, z: wz, r: 0.55, type: 'npc',
+      name: cfg.name,
+      dialog: cfg.dialog
+    });
+  });
+
+  // 四顆籃球（運球、跳投飛行、挑籃與罰球定位）
+  const bbBallPositions = [
+    { px: 944, py: 225, y: 0.58 },
+    { px: 946, py: 165, y: 2.85 },
+    { px: 1064, py: 285, y: 2.65 },
+    { px: 1051, py: 166, y: 0.24 }
+  ];
+  bbBallPositions.forEach((bPos) => {
+    const bb = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 12), basketballMat);
+    bb.position.set(pxToWorldX(bPos.px), bPos.y, pyToWorldZ(bPos.py));
+    bb.castShadow = true;
+    details3DGroup.add(bb);
+  });
 
   // === 零散分佈：校園主要道路（全校各大動線僅零散 10 位師生，彼此間隔 50～80 公尺）===
   const walkwayNPCConfigs = [
@@ -9849,6 +9961,17 @@ function animate(now) {
       const kick = Math.sin(now * 0.006 + s.seed) * 0.35;
       if (s.rightLeg) s.rightLeg.rotation.x = kick;
       if (s.leftArm) s.leftArm.rotation.x = -kick * 0.5;
+    } else if (s.role === 'stretcher') {
+      const breathe = Math.sin(now * 0.002 + s.seed) * 0.04;
+      if (s.leftArm) s.leftArm.rotation.x = -0.3 + breathe;
+      if (s.rightArm) s.rightArm.rotation.x = -0.3 + breathe;
+    } else if (s.role === 'volleyball') {
+      const squat = Math.sin(now * 0.004 + s.seed) * 0.04;
+      s.root.position.y = s.baseY + Math.abs(squat);
+    } else if (s.role === 'basketball_dribble') {
+      const bounce = Math.sin(now * 0.008 + s.seed) * 0.05;
+      s.root.position.y = s.baseY + Math.abs(bounce);
+      if (s.rightArm) s.rightArm.rotation.x = -0.65 + bounce * 2.5;
     }
   });
 
@@ -9980,6 +10103,18 @@ function handleTestHash() {
     selectBuilding('sports_courts', 'ALL', null, true);
     const target = new THREE.Vector3(pxToWorldX(844), 0, pyToWorldZ(310));
     camera.position.set(pxToWorldX(844) - 25, 62, pyToWorldZ(310) + 52);
+    controls.target.copy(target);
+    state.cameraTween = null;
+  } else if (h === '#test=track') {
+    selectBuilding('sports_courts', 'ALL', null, true);
+    const target = new THREE.Vector3(pxToWorldX(412), 0, pyToWorldZ(288));
+    camera.position.set(pxToWorldX(412) - 30, 85, pyToWorldZ(288) + 90);
+    controls.target.copy(target);
+    state.cameraTween = null;
+  } else if (h === '#test=courts') {
+    selectBuilding('sports_courts', 'ALL', null, true);
+    const target = new THREE.Vector3(pxToWorldX(950), 0, pyToWorldZ(250));
+    camera.position.set(pxToWorldX(950) - 35, 75, pyToWorldZ(250) + 65);
     controls.target.copy(target);
     state.cameraTween = null;
   } else if (h === '#test=walk') {
