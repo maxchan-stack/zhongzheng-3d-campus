@@ -215,10 +215,10 @@ window.CAMPUS_BUILDINGS = [
     category: "校園安全與門禁",
     floors: 1,
     hasBasement: false,
-    color: "#d4d8dd",
-    roofColor: "#899eb2",
+    color: "#dedcd6",
+    roofColor: "#c4c8c6",
     sensitive: false,
-    description: "位於校園大門口旁（平面圖座標 px: 1016..1045, py: 874..932），為淺灰白長型門禁亭搭配車道遮雨棚與直立校名石柱碑，負責校園門禁安全管制、訪客登記與緊急應變通報，外牆設有急救 AED 設備。",
+    description: "位於校園大門口旁（平面圖座標 px: 1016..1045, py: 874..932），為淺灰白洗石子平頂式門禁亭搭配深綠色平出簷遮雨棚、屋頂金屬花架、高聳簍空「臺北市立中正高級中學」校名石柱碑與雙向不鏽鋼自動伸縮鐵門，負責校園門禁管制、訪客登記與緊急通報。",
     labelPos: { px: 1030, py: 903 },
     parts: [
       { px: 1016, py: 874, pw: 29, ph: 58, floors: 1, heightM: 3.5 }
