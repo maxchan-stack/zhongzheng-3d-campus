@@ -504,3 +504,4 @@ with open(app_path, 'w', encoding='utf-8') as f:
     f.write(content)
 
 print("[SUCCESS] Successfully updated js/app.js with authentic facade details!")
+
