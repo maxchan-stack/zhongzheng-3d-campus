@@ -58,8 +58,8 @@ window.CAMPUS_BUILDINGS = [
     labelPos: { px: 805, py: 730 },
     parts: [
       { px: 780, py: 595, pw: 52, ph: 295, floors: 5 },
-      { px: 832, py: 595, pw: 92, ph: 22, floors: 3, name: "中美西廊道" },
-      { px: 832, py: 740, pw: 92, ph: 22, floors: 3, name: "中美東廊道" },
+      { px: 832, py: 595, pw: 92, ph: 22, floors: 5, name: "中美西廊道（5樓全通）" },
+      { px: 832, py: 740, pw: 92, ph: 22, floors: 5, name: "中美東廊道（5樓全通）" },
       { px: 832, py: 605, pw: 64, ph: 130, floors: 1, heightM: 0.22, isPlaza: true, color: "#6e7d6b", name: "椰子樹花園（大王椰子樹天井中庭）" },
       { px: 832, py: 755, pw: 64, ph: 100, floors: 1, heightM: 0.22, isPlaza: true, color: "#8a9187", name: "中正花園（矮綠籬步道天井中庭）" }
     ],
@@ -120,7 +120,8 @@ window.CAMPUS_BUILDINGS = [
     description: "位於中庭西側（大花圃與四格池旁）之五層樓專科大樓。一樓為家政教室、國舞教室與儲物間；二樓為電腦教室（四）、生物活體室與哺乳室；三樓為英文專科與美術專科教室；四樓為視聽教室（一）、（二）；五樓為電腦教室（一）、（二）。",
     labelPos: { px: 640, py: 658 },
     parts: [
-      { px: 552, py: 625, pw: 175, ph: 44, floors: 5 }
+      { px: 552, py: 625, pw: 175, ph: 44, floors: 5 },
+      { px: 727, py: 625, pw: 55, ph: 44, floors: 4, name: "莊敬美齡連通大樓（4樓全通）" }
     ],
     entrances: [
       { px: 640, py: 669, name: "莊敬樓中庭入口" },

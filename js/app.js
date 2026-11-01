@@ -2934,90 +2934,95 @@ function buildRoofSolarAndBrickStuds() {
   studGeo.translate(0, 0.21, 0);
 
   BUILDINGS.forEach((b) => {
-    const part = b.parts[0];
-    if (!part || part.isPlaza || b.floors < 3) return;
-    const w = part.pw * SCALE;
-    const d = part.ph * SCALE;
-    const cx = pxToWorldX(part.px + part.pw / 2);
-    const cz = pyToWorldZ(part.py + part.ph / 2);
-    const roofY = b.floors * FLOOR_H;
+    b.parts.forEach((part, pIdx) => {
+      if (!part || part.isPlaza) return;
+      const partFloors = part.floors || b.floors;
+      if (partFloors < 3) return;
+      const w = part.pw * SCALE;
+      const d = part.ph * SCALE;
+      const cx = pxToWorldX(part.px + part.pw / 2);
+      const cz = pyToWorldZ(part.py + part.ph / 2);
+      const roofY = partFloors * FLOOR_H;
 
-    // 依 Google Maps 3D 實景：四周建立凸起的女兒牆 (高 0.85m)，內部鋪設真實的深灰防水漆屋頂層！
-    if (b.id !== 'activity_center') {
-      const wallT = 0.45;
-      const wallH = 0.85;
+      // 依 Google Maps 3D 實景：四周建立凸起的女兒牆 (高 0.85m)，內部鋪設真實的深灰防水漆屋頂層！
+      if (b.id !== 'activity_center') {
+        const wallT = 0.45;
+        const wallH = 0.85;
 
-      // 內部深灰防水面層
-      const roofFelt = new THREE.Mesh(
-        new THREE.BoxGeometry(w - wallT * 1.5, 0.12, d - wallT * 1.5),
-        roofFeltMat
-      );
-      roofFelt.position.set(cx, roofY + 0.06, cz);
-      roofFelt.receiveShadow = true;
-      details3DGroup.add(roofFelt);
-
-      // 四周灰白女兒牆
-      const nWall = new THREE.Mesh(new THREE.BoxGeometry(w, wallH, wallT), parapetMat);
-      nWall.position.set(cx, roofY + wallH / 2, cz - d / 2 + wallT / 2);
-      details3DGroup.add(nWall);
-
-      const sWall = new THREE.Mesh(new THREE.BoxGeometry(w, wallH, wallT), parapetMat);
-      sWall.position.set(cx, roofY + wallH / 2, cz + d / 2 - wallT / 2);
-      details3DGroup.add(sWall);
-
-      const wWall = new THREE.Mesh(new THREE.BoxGeometry(wallT, wallH, d), parapetMat);
-      wWall.position.set(cx - w / 2 + wallT / 2, roofY + wallH / 2, cz);
-      details3DGroup.add(wWall);
-
-      const eWall = new THREE.Mesh(new THREE.BoxGeometry(wallT, wallH, d), parapetMat);
-      eWall.position.set(cx + w / 2 - wallT / 2, roofY + wallH / 2, cz);
-      details3DGroup.add(eWall);
-
-      // 屋突樓梯間與電梯機房 (Penthouse)
-      const isLongZ = d > w;
-      const phW = Math.min(w * 0.55, 5.2);
-      const phD = Math.min(d * 0.55, 6.4);
-      const penthouse = new THREE.Mesh(new THREE.BoxGeometry(phW, 2.8, phD), penthouseMat);
-      penthouse.position.set(
-        cx + (isLongZ ? 0 : w * 0.22),
-        roofY + 1.4,
-        cz + (isLongZ ? d * 0.22 : 0)
-      );
-      penthouse.castShadow = true;
-      details3DGroup.add(penthouse);
-
-      // 冷卻水塔圓柱體 (金屬風扇格柵)
-      if (b.id === 'zhongzheng' || b.id === 'gezhi') {
-        const cooler = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 1.6, 12), metalUnitMat);
-        cooler.position.set(cx + (isLongZ ? 2.5 : 0), roofY + 0.9, cz + (isLongZ ? 0 : 2.5));
-        cooler.castShadow = true;
-        details3DGroup.add(cooler);
-      }
-    }
-
-    // 微縮積木主題 (brick) 屋頂 LEGO 凸點
-    const cols = Math.max(2, Math.floor(w / 2.2));
-    const rows = Math.max(2, Math.floor(d / 2.2));
-    const inst = new THREE.InstancedMesh(
-      studGeo,
-      new THREE.MeshStandardMaterial({ color: b.roofColor || b.color, roughness: 0.45 }),
-      cols * rows
-    );
-    const dummy = new THREE.Object3D();
-    let idx = 0;
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        dummy.position.set(
-          cx - w / 2 + 1.1 + c * ((w - 2.2) / Math.max(1, cols - 1)),
-          roofY,
-          cz - d / 2 + 1.1 + r * ((d - 2.2) / Math.max(1, rows - 1))
+        // 內部深灰防水面層
+        const roofFelt = new THREE.Mesh(
+          new THREE.BoxGeometry(w - wallT * 1.5, 0.12, d - wallT * 1.5),
+          roofFeltMat
         );
-        dummy.updateMatrix();
-        inst.setMatrixAt(idx++, dummy.matrix);
+        roofFelt.position.set(cx, roofY + 0.06, cz);
+        roofFelt.receiveShadow = true;
+        details3DGroup.add(roofFelt);
+
+        // 四周灰白女兒牆
+        const nWall = new THREE.Mesh(new THREE.BoxGeometry(w, wallH, wallT), parapetMat);
+        nWall.position.set(cx, roofY + wallH / 2, cz - d / 2 + wallT / 2);
+        details3DGroup.add(nWall);
+
+        const sWall = new THREE.Mesh(new THREE.BoxGeometry(w, wallH, wallT), parapetMat);
+        sWall.position.set(cx, roofY + wallH / 2, cz + d / 2 - wallT / 2);
+        details3DGroup.add(sWall);
+
+        const wWall = new THREE.Mesh(new THREE.BoxGeometry(wallT, wallH, d), parapetMat);
+        wWall.position.set(cx - w / 2 + wallT / 2, roofY + wallH / 2, cz);
+        details3DGroup.add(wWall);
+
+        const eWall = new THREE.Mesh(new THREE.BoxGeometry(wallT, wallH, d), parapetMat);
+        eWall.position.set(cx + w / 2 - wallT / 2, roofY + wallH / 2, cz);
+        details3DGroup.add(eWall);
+
+        // 屋突樓梯間與電梯機房 (Penthouse，僅主樓頂配置)
+        if (pIdx === 0) {
+          const isLongZ = d > w;
+          const phW = Math.min(w * 0.55, 5.2);
+          const phD = Math.min(d * 0.55, 6.4);
+          const penthouse = new THREE.Mesh(new THREE.BoxGeometry(phW, 2.8, phD), penthouseMat);
+          penthouse.position.set(
+            cx + (isLongZ ? 0 : w * 0.22),
+            roofY + 1.4,
+            cz + (isLongZ ? d * 0.22 : 0)
+          );
+          penthouse.castShadow = true;
+          details3DGroup.add(penthouse);
+
+          // 冷卻水塔圓柱體 (金屬風扇格柵)
+          if (b.id === 'zhongzheng' || b.id === 'gezhi') {
+            const cooler = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 1.6, 12), metalUnitMat);
+            cooler.position.set(cx + (isLongZ ? 2.5 : 0), roofY + 0.9, cz + (isLongZ ? 0 : 2.5));
+            cooler.castShadow = true;
+            details3DGroup.add(cooler);
+          }
+        }
       }
-    }
-    inst.instanceMatrix.needsUpdate = true;
-    brickStudsGroup.add(inst);
+
+      // 微縮積木主題 (brick) 屋頂 LEGO 凸點
+      const cols = Math.max(2, Math.floor(w / 2.2));
+      const rows = Math.max(2, Math.floor(d / 2.2));
+      const inst = new THREE.InstancedMesh(
+        studGeo,
+        new THREE.MeshStandardMaterial({ color: b.roofColor || b.color, roughness: 0.45 }),
+        cols * rows
+      );
+      const dummy = new THREE.Object3D();
+      let idx = 0;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          dummy.position.set(
+            cx - w / 2 + 1.1 + c * ((w - 2.2) / Math.max(1, cols - 1)),
+            roofY,
+            cz - d / 2 + 1.1 + r * ((d - 2.2) / Math.max(1, rows - 1))
+          );
+          dummy.updateMatrix();
+          inst.setMatrixAt(idx++, dummy.matrix);
+        }
+      }
+      inst.instanceMatrix.needsUpdate = true;
+      brickStudsGroup.add(inst);
+    });
   });
 }
 
@@ -5447,6 +5452,15 @@ function handleTestHash() {
   if (!h) return;
   if (h === '#test=panel') {
     selectBuilding('library', 'ALL', null, false);
+  } else if (h === '#test=corridors') {
+    // 俯瞰紅圈處（中美廊道 5 樓全通）與藍圈處（莊敬美齡 4 樓全通）
+    document.getElementById('right-panel')?.classList.add('collapsed');
+    camera.fov = 48;
+    camera.updateProjectionMatrix();
+    camera.position.set(pxToWorldX(980), 92, pyToWorldZ(880));
+    controls.target.set(pxToWorldX(720), 12, pyToWorldZ(670));
+    state.cameraTween = null;
+    controls.update();
   } else if (h === '#test=google3d') {
     // 依 Google Maps 3D 實景照片視角：迎賓廣場中正園「The statue」與中正樓正面出挑遮陽板、大階梯、椰子樹花園
     document.getElementById('right-panel')?.classList.add('collapsed');

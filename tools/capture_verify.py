@@ -4,8 +4,7 @@ import os
 
 chrome_path = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 shots = [
-    ('shot_google3d.png', 'file:///Users/maxchan/Desktop/3D/index.html#test=google3d'),
-    ('shot_gate.png', 'file:///Users/maxchan/Desktop/3D/index.html#test=gate')
+    ('shot_corridors.png', 'file:///Users/maxchan/Desktop/3D/index.html#test=corridors')
 ]
 
 for filename, url in shots:
