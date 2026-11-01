@@ -1266,15 +1266,18 @@ function buildBlueTrackAndField() {
 }
 
 function buildGateAndEastPlazaDetails() {
-  // 依 Google Maps 3D 實景航拍照還原：
-  // A. 正門迎賓廣場與中正園「The statue」景觀島
-  // B. 中正樓與至聖樓正面連續立體出挑遮陽板（Brise-soleil）與空調外機托架
-  // C. 中正樓正門挑空大穿堂、8 階大階梯與榮譽直幅布條
-  // D. 椰子樹花園（Coconut Palm Garden）高聳大王椰子樹群與中央樓梯塔樓
-  // E. 中正花園（Zhongzheng Garden）幾何矮綠籬與鋪石步道
-  // F. 格致樓圓弧轉角立面垂直遮陽格柵
+  // 依據 Google Maps 3D 實景航拍照 (media_1793510116358_3348b031.jpg) 精準還原中正樓與至聖樓真實外觀：
+  // 1. 左側大樓（至聖樓）：
+  //    - 正門挑空大穿堂、8 階大階梯、兩道長條垂直紅底榮譽布條，正對「The statue」中正園雕像島！
+  //    - 最左端格致樓轉角圓弧立面帶密集垂直細百葉。
+  // 2. 右側大樓（中正樓）：
+  //    - 全棟正面為極致規律之「立體混凝土方格遮陽深窗網格（Grid Facade）」，凹凸立體。
+  //    - 1 樓外側為長達 60 公尺之「連續墨綠色斜面遮雨棚」！
+  //    - 前方為教職員汽車斜向停車場。
+  // 3. 雙中庭天井：
+  //    - 左側天井為「中正花園」，右側天井為高聳大王椰子樹之「椰子樹花園」。
 
-  // 1. 迎賓廣場米白地磚嵌紅磚方格網線鋪面
+  // A. 迎賓廣場米白地磚嵌紅磚方格網線鋪面
   const plazaCanvas = document.createElement('canvas');
   plazaCanvas.width = 512;
   plazaCanvas.height = 512;
@@ -1330,7 +1333,7 @@ function buildGateAndEastPlazaDetails() {
   plazaMesh.receiveShadow = true;
   details3DGroup.add(plazaMesh);
 
-  // 活動中心南側草坪綠地鋪面
+  // 活動中心南側草坪綠地
   const grovePolyPx = [
     [1124, 658],
     [1336, 658],
@@ -1356,9 +1359,9 @@ function buildGateAndEastPlazaDetails() {
   groveMesh.receiveShadow = true;
   details3DGroup.add(groveMesh);
 
-  // 2. 中正園「The statue」紀念雕像圓形景觀島（對齊 Google Maps 3D 照片實景）
+  // B. 中正園「The statue」雕像島（精確正對至聖樓正門大階梯軸線 py: 815！）
   const islandX = pxToWorldX(1048);
-  const islandZ = pyToWorldZ(762);
+  const islandZ = pyToWorldZ(815);
   const curbRing = new THREE.Mesh(
     new THREE.CylinderGeometry(8.2, 8.5, 0.48, 32),
     new THREE.MeshStandardMaterial({ color: 0x9b968c, roughness: 0.85 })
@@ -1375,7 +1378,7 @@ function buildGateAndEastPlazaDetails() {
   lawnMound.receiveShadow = true;
   details3DGroup.add(lawnMound);
 
-  // 假山石雕
+  // 假山岩石
   const rockMat = new THREE.MeshStandardMaterial({ color: 0x7a756b, roughness: 0.88 });
   [
     { dx: 0.2, dz: -0.3, r: 1.45, h: 1.85 },
@@ -1391,7 +1394,7 @@ function buildGateAndEastPlazaDetails() {
     details3DGroup.add(boulder);
   });
 
-  // Google Maps 3D 標註之「The statue」深青銅色紀念雕像
+  // 「The statue」深青銅色紀念雕像
   const statueMat = new THREE.MeshStandardMaterial({ color: 0x2d3436, roughness: 0.4, metalness: 0.6 });
   const statuePedestal = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.8, 1.4), new THREE.MeshStandardMaterial({ color: 0xbab5ab, roughness: 0.8 }));
   statuePedestal.position.set(islandX, 1.6, islandZ);
@@ -1404,13 +1407,13 @@ function buildGateAndEastPlazaDetails() {
   statueHead.castShadow = true;
   details3DGroup.add(statuePedestal, statueBody, statueHead);
 
-  // 3. 教職員斜向停車位與車輛
+  // C. 教職員斜向停車場（整齊分佈於中正樓正面迎賓廣場 px: 1018..1078, py: 540..745）
   const carColors = [0xf5f5f5, 0x2c333d, 0xd8dce0, 0x8c2d2d, 0x364f6b, 0xfafafa, 0x45494e];
   const lineMat = new THREE.MeshBasicMaterial({ color: 0xf2efe9 });
   [-1, 1].forEach((side) => {
     const rowPx = 1048 + side * 26;
-    for (let i = 0; i < 8; i++) {
-      const cpy = 548 + i * 19.5;
+    for (let i = 0; i < 9; i++) {
+      const cpy = 548 + i * 21.0;
       const sx = pxToWorldX(rowPx);
       const sz = pyToWorldZ(cpy);
       const slotLine = new THREE.Mesh(new THREE.PlaneGeometry(3.9, 0.15), lineMat);
@@ -1451,78 +1454,66 @@ function buildGateAndEastPlazaDetails() {
     }
   });
 
-  // 4. 中正樓與至聖樓正面：依 Google Maps 3D 還原「連續水平出挑遮陽板（Brise-soleil）與空調外機托架」
-  const louverMat = new THREE.MeshStandardMaterial({ color: 0xf5f3ee, roughness: 0.7 });
-  const louverDarkMat = new THREE.MeshStandardMaterial({ color: 0x3d434a, roughness: 0.8 });
-  const facadeX = pxToWorldX(952) + 0.38; // 大樓東外牆向外突出位置
-  const facadeZStart = pyToWorldZ(530);
-  const facadeZEnd = pyToWorldZ(885);
-  const facadeLen = Math.abs(facadeZEnd - facadeZStart);
-  const facadeCenterZ = (facadeZStart + facadeZEnd) / 2;
+  // D. 【左側大樓：至聖樓】實景還原（正門大穿堂、8 階大階梯、榮譽長幅布條與圓弧格柵）
+  const zhishengX = pxToWorldX(952) + 0.35;
+  const entryZ = pyToWorldZ(815); // 正對中正園「The statue」中心！
 
-  // 2F, 3F, 4F, 5F 每一層樓外挑一道水平連續水泥遮陽板（寬 0.75m、厚 0.14m）
-  [1, 2, 3, 4].forEach((fIdx) => {
-    const floorBaseY = fIdx * FLOOR_H;
-    // 窗頂遮陽板
-    const louverSlab = new THREE.Mesh(
-      new THREE.BoxGeometry(0.75, 0.14, facadeLen),
-      louverMat
-    );
-    louverSlab.position.set(facadeX, floorBaseY + 2.85, facadeCenterZ);
-    louverSlab.castShadow = true;
-    details3DGroup.add(louverSlab);
+  // 1. 正門挑空大穿堂（1F~2F 挑高約 7.2m，寬約 26m，兩側大柱門廊）
+  const portalFrameMat = new THREE.MeshStandardMaterial({ color: 0xd8d6cf, roughness: 0.8 });
+  const portalVoidMat = new THREE.MeshStandardMaterial({ color: 0x1f242b, roughness: 0.9 });
+  // 挑空內凹背景門廳
+  const portalVoid = new THREE.Mesh(new THREE.BoxGeometry(1.2, 7.0, 24.0), portalVoidMat);
+  portalVoid.position.set(zhishengX - 0.4, 3.6, entryZ);
+  details3DGroup.add(portalVoid);
 
-    // 窗台下方空調室外機托架與防雨板
-    const shelfSlab = new THREE.Mesh(
-      new THREE.BoxGeometry(0.55, 0.12, facadeLen),
-      louverMat
-    );
-    shelfSlab.position.set(facadeX - 0.10, floorBaseY + 0.95, facadeCenterZ);
-    shelfSlab.castShadow = true;
-    details3DGroup.add(shelfSlab);
+  // 門廊頂部大挑簷梁（高 7.2m）
+  const portalBeam = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.95, 26.5), portalFrameMat);
+  portalBeam.position.set(zhishengX + 0.15, 7.3, entryZ);
+  portalBeam.castShadow = true;
+  details3DGroup.add(portalBeam);
 
-    // 每一間教室之垂直遮陽間隔柱（間隔 9 公尺一對）
-    for (let pz = facadeZStart + 4.5; pz <= facadeZEnd - 4.5; pz += 8.8) {
-      const vFin = new THREE.Mesh(new THREE.BoxGeometry(0.65, 1.85, 0.16), louverMat);
-      vFin.position.set(facadeX - 0.05, floorBaseY + 1.9, pz);
-      vFin.castShadow = true;
-      details3DGroup.add(vFin);
-
-      // 小型空調外機百葉箱體
-      const acUnit = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.58, 0.85), louverDarkMat);
-      acUnit.position.set(facadeX - 0.12, floorBaseY + 0.65, pz + 1.2);
-      acUnit.castShadow = true;
-      details3DGroup.add(acUnit);
-    }
+  // 兩側挑空立柱
+  [-13.0, 13.0].forEach((dz) => {
+    const col = new THREE.Mesh(new THREE.BoxGeometry(1.4, 7.2, 1.2), portalFrameMat);
+    col.position.set(zhishengX + 0.15, 3.6, entryZ + dz);
+    col.castShadow = true;
+    details3DGroup.add(col);
   });
 
-  // 5. 中正樓正門挑空大穿堂與 8 階深灰色大理石大階梯（寬 26m，進深 4.8m）
+  // 2. 正門前寬達 26m、進深 5m 的 8 階深灰色大理石階梯
   const stepsGroup = new THREE.Group();
-  const stepMat = new THREE.MeshStandardMaterial({ color: 0x9e9a91, roughness: 0.85 });
-  const stepEdgeMat = new THREE.MeshStandardMaterial({ color: 0xdfdad2, roughness: 0.8 });
-  const entryZ = pyToWorldZ(645);
-
+  const stepMat = new THREE.MeshStandardMaterial({ color: 0x949086, roughness: 0.85 });
   for (let s = 0; s < 8; s++) {
-    const sW = 4.8 - s * 0.55;
+    const sW = 5.0 - s * 0.58;
     const sH = 0.18;
-    const sD = 26.0 - s * 0.4;
+    const sD = 26.0 - s * 0.35;
     const stepMesh = new THREE.Mesh(new THREE.BoxGeometry(sW, sH, sD), stepMat);
-    stepMesh.position.set(facadeX + 0.2 + s * 0.28, 0.15 + s * 0.16, entryZ);
+    stepMesh.position.set(zhishengX + 0.25 + s * 0.28, 0.15 + s * 0.16, entryZ);
     stepMesh.receiveShadow = true;
     stepsGroup.add(stepMesh);
   }
   details3DGroup.add(stepsGroup);
 
-  // 挑空門廊之兩道標誌性紅底榮譽長條布條
-  const bannerMat = new THREE.MeshStandardMaterial({ color: 0xb8263e, roughness: 0.65 });
-  [-4.8, 4.8].forEach((dz) => {
-    const banner = new THREE.Mesh(new THREE.BoxGeometry(0.12, 8.8, 1.6), bannerMat);
-    banner.position.set(facadeX + 0.35, 7.8, entryZ + dz);
+  // 3. 門廊上方懸掛之兩道標誌性長條垂直紅色榮譽長幅布條
+  const bannerMat = new THREE.MeshStandardMaterial({ color: 0xb5243b, roughness: 0.65 });
+  [-5.2, 5.2].forEach((dz) => {
+    const banner = new THREE.Mesh(new THREE.BoxGeometry(0.12, 8.8, 1.7), bannerMat);
+    banner.position.set(zhishengX + 0.45, 8.2, entryZ + dz);
     banner.castShadow = true;
     details3DGroup.add(banner);
   });
 
-  // 6. 格致樓與至聖樓交接處之圓弧轉角立面 (px: 938, py: 892) 垂直遮陽百葉
+  // 4. 穿堂上方 3F~5F 橫向挑出陽台護欄板
+  const balconyMat = new THREE.MeshStandardMaterial({ color: 0xe6e4dc, roughness: 0.75 });
+  [2, 3, 4].forEach((fIdx) => {
+    const bY = fIdx * FLOOR_H;
+    const balcony = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.85, 25.5), balconyMat);
+    balcony.position.set(zhishengX + 0.25, bY + 0.45, entryZ);
+    balcony.castShadow = true;
+    details3DGroup.add(balcony);
+  });
+
+  // 5. 最左端格致樓與至聖樓交接處之圓弧轉角立面 (px: 938, py: 892) 垂直遮陽百葉
   const cornerH = 5 * FLOOR_H - 0.1;
   const cornerCyl = new THREE.Mesh(
     new THREE.CylinderGeometry(3.8, 3.8, cornerH, 24),
@@ -1532,7 +1523,6 @@ function buildGateAndEastPlazaDetails() {
   cornerCyl.castShadow = true;
   details3DGroup.add(cornerCyl);
 
-  // 垂直細格條紋
   const stripeMat = new THREE.MeshStandardMaterial({ color: 0x8a867c, roughness: 0.7 });
   for (let a = 0; a < Math.PI / 2; a += 0.16) {
     const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.12, cornerH - 0.5, 0.12), stripeMat);
@@ -1544,12 +1534,92 @@ function buildGateAndEastPlazaDetails() {
     details3DGroup.add(stripe);
   }
 
-  // 7. 依 Google Maps 3D 實景還原「椰子樹花園（Coconut Palm Garden）」天井 (px: 832..896, py: 605..735)
-  // 天井中央突出的白色樓梯塔樓，以及 5 棵高聳探出天井的大王椰子樹群！
+  // E. 【右側大樓：中正樓】實景還原（立體方格遮陽深窗網格 Grid Facade + 1 樓連續墨綠色斜面遮雨棚）
+  const zhongzhengX = pxToWorldX(952) + 0.42;
+  const zzZStart = pyToWorldZ(532);
+  const zzZEnd = pyToWorldZ(758);
+  const zzLen = Math.abs(zzZEnd - zzZStart); // 約 61 公尺
+  const zzCenterZ = (zzZStart + zzZEnd) / 2;
+
+  // 1. 2F、3F、4F、5F 全棟正面規律的立體混凝土方格深窗陣列
+  const gridFrameMat = new THREE.MeshStandardMaterial({ color: 0xf5f3ee, roughness: 0.65 });
+  const gridRecessMat = new THREE.MeshStandardMaterial({ color: 0x27303a, roughness: 0.85 }); // 深邃凹窗
+  const acBoxMat = new THREE.MeshStandardMaterial({ color: 0x48515c, roughness: 0.75 }); // 冷氣機百葉
+
+  // 16 個規律窗格單元 (沿 Z 軸展開)
+  const numBays = 16;
+  const bayW = zzLen / numBays;
+
+  [1, 2, 3, 4].forEach((fIdx) => {
+    const floorY = fIdx * FLOOR_H;
+    // 每層樓頂部的水平凸簷板
+    const browSlab = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.14, zzLen), gridFrameMat);
+    browSlab.position.set(zhongzhengX, floorY + 2.9, zzCenterZ);
+    browSlab.castShadow = true;
+    details3DGroup.add(browSlab);
+
+    // 每層樓下方的窗台外凸托架板
+    const sillSlab = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.12, zzLen), gridFrameMat);
+    sillSlab.position.set(zhongzhengX - 0.05, floorY + 0.95, zzCenterZ);
+    sillSlab.castShadow = true;
+    details3DGroup.add(sillSlab);
+
+    // 垂直遮陽隔板與深凹窗格
+    for (let i = 0; i < numBays; i++) {
+      const bayCenterZ = zzZStart + (i + 0.5) * bayW;
+
+      // 左右立體邊框垂直板
+      const finMesh = new THREE.Mesh(new THREE.BoxGeometry(0.50, 1.85, 0.16), gridFrameMat);
+      finMesh.position.set(zhongzhengX, floorY + 1.9, zzZStart + i * bayW);
+      finMesh.castShadow = true;
+      details3DGroup.add(finMesh);
+
+      // 凹陷玻璃窗面
+      const winRecess = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.70, bayW - 0.28), gridRecessMat);
+      winRecess.position.set(zhongzhengX - 0.22, floorY + 1.9, bayCenterZ);
+      details3DGroup.add(winRecess);
+
+      // 空調托架上之小型冷氣百葉箱
+      const acUnit = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.55, 0.75), acBoxMat);
+      acUnit.position.set(zhongzhengX - 0.08, floorY + 0.62, bayCenterZ);
+      acUnit.castShadow = true;
+      details3DGroup.add(acUnit);
+    }
+  });
+
+  // 2. 1 樓底部整排連續 60 公尺長之「墨綠色斜面遮雨棚」
+  const greenAwningMat = new THREE.MeshStandardMaterial({ color: 0x1f5c38, roughness: 0.55 });
+  const awningMesh = new THREE.Mesh(new THREE.BoxGeometry(2.35, 0.14, zzLen - 2.0), greenAwningMat);
+  awningMesh.position.set(zhongzhengX + 0.95, 3.25, zzCenterZ);
+  awningMesh.rotation.z = -0.26; // 向外向下斜面傾角
+  awningMesh.castShadow = true;
+  details3DGroup.add(awningMesh);
+
+  // 雨棚下方支撐鋼柱
+  const awningPostMat = new THREE.MeshStandardMaterial({ color: 0x7c838a, metalness: 0.5 });
+  for (let z = zzZStart + 2.0; z <= zzZEnd - 2.0; z += 5.5) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 3.0, 8), awningPostMat);
+    post.position.set(zhongzhengX + 1.95, 1.5, z);
+    post.castShadow = true;
+    details3DGroup.add(post);
+  }
+
+  // 3. 中正樓南端山牆（靠近運動場 py: 530）之彩虹馬賽克壁畫
+  const muralColors = [0x2b8cbe, 0x4eb3d3, 0x7bccc4, 0xfdae61, 0xd73027];
+  muralColors.forEach((mc, idx) => {
+    const stripe = new THREE.Mesh(
+      new THREE.BoxGeometry(1.1, 4 * FLOOR_H * 0.82, 0.24),
+      new THREE.MeshStandardMaterial({ color: mc, roughness: 0.5 })
+    );
+    stripe.position.set(pxToWorldX(904 + idx * 8.5), 2.5 * FLOOR_H, zzZStart);
+    details3DGroup.add(stripe);
+  });
+
+  // F. 雙中庭天井：「椰子樹花園」與「中正花園」
+  // 1. 椰子樹花園（Coconut Palm Garden, px: 832..896, py: 605..735）
   const palmGardenCx = pxToWorldX((832 + 896) / 2);
   const palmGardenCz = pyToWorldZ((605 + 735) / 2);
 
-  // 天井地面石鋪面
   const palmFloor = new THREE.Mesh(
     new THREE.BoxGeometry(64 * SCALE, 0.22, 130 * SCALE),
     new THREE.MeshStandardMaterial({ color: 0x6e7d6b, roughness: 0.9 })
@@ -1558,7 +1628,7 @@ function buildGateAndEastPlazaDetails() {
   palmFloor.receiveShadow = true;
   details3DGroup.add(palmFloor);
 
-  // 天井中央獨立樓梯塔樓 (寬 5.4m, 高 12m, 深 6.8m)
+  // 天井中央獨立樓梯塔樓
   const stairTower = new THREE.Mesh(
     new THREE.BoxGeometry(5.4, 12.0, 6.8),
     new THREE.MeshStandardMaterial({ color: 0xdedbd4, roughness: 0.8 })
@@ -1567,14 +1637,13 @@ function buildGateAndEastPlazaDetails() {
   stairTower.castShadow = true;
   details3DGroup.add(stairTower);
 
-  // 大王椰子樹（Royal Palm）材質
-  const palmTrunkMat = new THREE.MeshStandardMaterial({ color: 0xd2cdc4, roughness: 0.75 }); // 灰白環紋光滑主幹
-  const palmSheathMat = new THREE.MeshStandardMaterial({ color: 0x3d8542, roughness: 0.6 }); // 頂部碧綠葉鞘
-  const palmFrondMat = new THREE.MeshStandardMaterial({ color: 0x225c27, roughness: 0.65, side: THREE.DoubleSide }); // 下垂羽狀椰葉
+  // 5 棵挺拔高聳的大王椰子樹
+  const palmTrunkMat = new THREE.MeshStandardMaterial({ color: 0xd2cdc4, roughness: 0.75 });
+  const palmSheathMat = new THREE.MeshStandardMaterial({ color: 0x3d8542, roughness: 0.6 });
+  const palmFrondMat = new THREE.MeshStandardMaterial({ color: 0x225c27, roughness: 0.65, side: THREE.DoubleSide });
 
   function createRoyalPalmMesh(heightM) {
     const palm = new THREE.Group();
-    // 灰白主幹 (基部微粗、中段光滑筆直)
     const trunk = new THREE.Mesh(
       new THREE.CylinderGeometry(0.32, 0.42, heightM - 1.4, 10),
       palmTrunkMat
@@ -1583,7 +1652,6 @@ function buildGateAndEastPlazaDetails() {
     trunk.castShadow = true;
     palm.add(trunk);
 
-    // 頂部光滑碧綠葉鞘 (Crownshaft)
     const sheath = new THREE.Mesh(
       new THREE.CylinderGeometry(0.30, 0.32, 1.4, 10),
       palmSheathMat
@@ -1592,7 +1660,6 @@ function buildGateAndEastPlazaDetails() {
     sheath.castShadow = true;
     palm.add(sheath);
 
-    // 頂端傘狀下垂展開的 10 片大型羽狀椰葉
     const crownTopY = heightM;
     for (let i = 0; i < 10; i++) {
       const angle = (i / 10) * Math.PI * 2 + (i % 2) * 0.15;
@@ -1600,11 +1667,10 @@ function buildGateAndEastPlazaDetails() {
       frondGroup.position.set(0, crownTopY, 0);
       frondGroup.rotation.y = angle;
 
-      // 弧形下彎葉身
       const frondGeo = new THREE.BoxGeometry(0.35, 0.05, 3.8);
       const frond = new THREE.Mesh(frondGeo, palmFrondMat);
       frond.position.set(0, -0.65, 1.8);
-      frond.rotation.x = -0.42; // 下垂角度
+      frond.rotation.x = -0.42;
       frondGroup.add(frond);
 
       palm.add(frondGroup);
@@ -1612,7 +1678,6 @@ function buildGateAndEastPlazaDetails() {
     return palm;
   }
 
-  // 在椰子樹花園天井內種植 5 棵挺拔高聳的大王椰子樹 (高度 11m ~ 13.5m，椰葉高高探出天井！)
   const palmConfigs = [
     { dx: -4.5, dz: -8.5, h: 12.8 },
     { dx: 4.2, dz: -9.2, h: 13.5 },
@@ -1626,8 +1691,7 @@ function buildGateAndEastPlazaDetails() {
     details3DGroup.add(palm);
   });
 
-  // 8. 依 Google Maps 3D 實景還原「中正花園（Zhongzheng Garden）」天井 (px: 832..896, py: 755..855)
-  // 天井地面石鋪面、幾何矮綠籬花台與步道
+  // 2. 中正花園（Zhongzheng Garden, px: 832..896, py: 755..855）
   const zGardenCx = pxToWorldX((832 + 896) / 2);
   const zGardenCz = pyToWorldZ((755 + 855) / 2);
   const zGardenFloor = new THREE.Mesh(
@@ -1638,13 +1702,36 @@ function buildGateAndEastPlazaDetails() {
   zGardenFloor.receiveShadow = true;
   details3DGroup.add(zGardenFloor);
 
-  // 幾何矮綠籬花台
   const hedgeMat = new THREE.MeshStandardMaterial({ color: 0x3d703b, roughness: 0.9 });
   [-1, 1].forEach((sign) => {
     const hedgeBox = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.65, 8.5), hedgeMat);
     hedgeBox.position.set(zGardenCx + sign * 3.6, 0.55, zGardenCz);
     hedgeBox.castShadow = true;
     details3DGroup.add(hedgeBox);
+  });
+
+  // G. 格致樓外牆雙排綠色波浪頂棚停車棚
+  const shedRoofMat = new THREE.MeshStandardMaterial({ color: 0x1e8758, roughness: 0.45, metalness: 0.15 });
+  const postMat = new THREE.MeshStandardMaterial({ color: 0x7a8288, metalness: 0.5 });
+  [
+    { x0: 642, pw: 308, py: 923 },
+    { x0: 625, pw: 325, py: 965 }
+  ].forEach((sh) => {
+    const shedW = sh.pw * SCALE;
+    const shedD = 20 * SCALE;
+    const shedCx = pxToWorldX(sh.x0 + sh.pw / 2);
+    const shedCz = pyToWorldZ(sh.py);
+    const shedCap = new THREE.Mesh(new THREE.BoxGeometry(shedW, 0.22, shedD), shedRoofMat);
+    shedCap.position.set(shedCx, 3.05, shedCz);
+    shedCap.rotation.x = 0.10;
+    shedCap.castShadow = true;
+    details3DGroup.add(shedCap);
+
+    for (let px = sh.x0 + 15; px <= sh.x0 + sh.pw - 15; px += 38) {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 3.0, 8), postMat);
+      post.position.set(pxToWorldX(px), 1.5, shedCz);
+      details3DGroup.add(post);
+    }
   });
 
   // 7. 校門口警衛室平頂出簷建築、高聳簍空「臺北市立中正高級中學」校名石柱碑、行人側門與雙向不鏽鋼自動伸縮鐵門
@@ -5462,12 +5549,12 @@ function handleTestHash() {
     state.cameraTween = null;
     controls.update();
   } else if (h === '#test=google3d') {
-    // 依 Google Maps 3D 實景照片視角：迎賓廣場中正園「The statue」與中正樓正面出挑遮陽板、大階梯、椰子樹花園
+    // 依 Google Maps 3D 實景照片視角：迎賓廣場中正園「The statue」正對至聖樓穿堂大階梯，以及右側中正樓立體方格深窗與綠色雨棚
     document.getElementById('right-panel')?.classList.add('collapsed');
     camera.fov = 45;
     camera.updateProjectionMatrix();
-    camera.position.set(pxToWorldX(1140), 48, pyToWorldZ(760));
-    controls.target.set(pxToWorldX(890), 10, pyToWorldZ(670));
+    camera.position.set(pxToWorldX(1160), 38, pyToWorldZ(760));
+    controls.target.set(pxToWorldX(915), 11, pyToWorldZ(750));
     state.cameraTween = null;
     controls.update();
   } else if (h === '#test=garden') {
