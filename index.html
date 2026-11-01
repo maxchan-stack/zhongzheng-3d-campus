@@ -1100,7 +1100,7 @@ body.night-mode .ctrl-btn.active {
   width: 100%;
 }
 
-/* === 新增功能樣式：載入畫面、視覺風格選單、3D 動態羅盤與操控盤、第三人稱角色漫步、特色班群導覽、底部導航列 === */
+/* === 新增功能樣式：載入畫面、視覺風格選單、3D 動態羅盤與操控盤、第三人稱角色漫步、底部導航列 === */
 body.pixel-mode #canvas-container canvas {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
@@ -1385,97 +1385,6 @@ body.panel-open #compass-box {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-}
-
-/* 特色班群與科館導覽抽屜 */
-#programs-drawer {
-  position: absolute;
-  top: 76px;
-  right: 14px;
-  bottom: 38px;
-  width: 410px;
-  z-index: 22;
-  background: var(--bg-panel-solid);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
-  display: none;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-#programs-drawer.open {
-  display: flex;
-}
-
-.programs-grid {
-  padding: 14px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.prog-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-left: 4px solid var(--accent);
-  border-radius: var(--radius-md);
-  padding: 11px 13px;
-  cursor: pointer;
-  transition: transform 0.12s, border-color 0.15s, background 0.15s;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.prog-card:hover {
-  background: var(--accent-light);
-  transform: translateY(-1px);
-}
-
-.prog-card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.prog-card-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-.prog-card-bldg {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 99px;
-  background: var(--bg-subtle);
-  color: var(--accent);
-}
-
-.prog-card-desc {
-  font-size: 12px;
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-.prog-card-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 2px;
-}
-
-.prog-tag {
-  font-size: 10.5px;
-  font-family: var(--font-mono);
-  background: var(--bg-subtle);
-  color: var(--text-main);
-  padding: 2px 6px;
-  border-radius: 4px;
 }
 
 /* 底部中央：第三人稱地面漫步冒險 HUD 控制列 */
@@ -2050,19 +1959,6 @@ body.panel-open #compass-box {
     font-size: 10.5px;
   }
 
-  /* 特色班群抽屜自適應滿版底部滑出 */
-  #programs-drawer {
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    max-width: 100vw;
-    max-height: 56vh;
-    border-radius: 16px 16px 0 0;
-    z-index: 36;
-  }
-
   /* 浮動標籤在行動裝置上精簡尺寸並省略次要樓層角標，防止長字串橫跨整個窄螢幕 */
   .map-label {
     padding: 3px 7px;
@@ -2318,7 +2214,6 @@ body.panel-open #compass-box {
     <div class="top-controls">
       <button id="btn-reset-cam" class="ctrl-btn active" title="回到全校最佳全覽視角">最佳全覽</button>
       <button id="btn-mode-fpv" class="ctrl-btn" title="以中正高中同學角色在校園地面漫步探索">地面實境漫步</button>
-      <button id="btn-programs" class="ctrl-btn" title="檢視中正高中藝才班、實驗班與特色教學空間">特色班群導覽</button>
       <div class="theme-dropdown" id="theme-dropdown">
         <button id="btn-theme-menu" class="ctrl-btn" title="切換 3D 視覺風格主題"><span id="theme-menu-label">晴空寫實</span> ▾</button>
         <div id="theme-menu" class="theme-menu">
@@ -2492,18 +2387,6 @@ body.panel-open #compass-box {
 
   <!-- 收合右側介紹抽屜時的浮動展開按鈕 -->
   <button type="button" id="reopen-drawer-pill">展開大樓介紹 ▴</button>
-
-  <!-- 特色班群與科館導覽抽屜 -->
-  <aside id="programs-drawer">
-    <div class="panel-header">
-      <div>
-        <div class="panel-category">中正高中多元與藝術實驗教育</div>
-        <h2 class="panel-title">特色班群與專科場館導覽</h2>
-      </div>
-      <button id="programs-close" class="panel-close" title="關閉面板">✕</button>
-    </div>
-    <div id="programs-list" class="programs-grid"></div>
-  </aside>
 
   <!-- 底部中央：第三人稱地面漫步冒險控制列 (支援男同學/女同學角色、第三/第一人稱、步行/跑步與出生點瞬移) -->
   <div id="walk-hud-bar">
@@ -8106,7 +7989,6 @@ function selectBuilding(buildingId, floorKey = 'ALL', highlightRoomId = null, fl
     document.getElementById('left-dock')?.classList.add('mobile-collapsed');
     const toggleBtn = document.getElementById('mobile-dock-toggle-btn');
     if (toggleBtn) toggleBtn.textContent = '路線與導覽 ▴';
-    document.getElementById('programs-drawer')?.classList.remove('open');
   }
 
   renderRightPanel(bObj.data, floorKey, highlightRoomId);
@@ -8825,12 +8707,11 @@ function updateFloatingLabels() {
   const leftDockEl = document.getElementById('left-dock');
   const leftDockExpanded = window.innerWidth <= 1024 && leftDockEl && !leftDockEl.classList.contains('mobile-collapsed');
   const navVisible = document.getElementById('nav-status-bar')?.classList.contains('visible');
-  const progOpen = document.getElementById('programs-drawer')?.classList.contains('open');
   const reopenPill = document.getElementById('reopen-drawer-pill');
   if (reopenPill) {
     reopenPill.classList.toggle(
       'visible',
-      !rightOpen && !leftDockExpanded && !navVisible && !progOpen && Boolean(state.selectedBuildingId) && state.viewMode === 'birdseye'
+      !rightOpen && !leftDockExpanded && !navVisible && Boolean(state.selectedBuildingId) && state.viewMode === 'birdseye'
     );
   }
 
@@ -8840,7 +8721,6 @@ function updateFloatingLabels() {
     document.getElementById('left-dock'),
     document.getElementById('compass-box'),
     rightOpen ? rightPanelEl : null,
-    document.getElementById('programs-drawer')?.classList.contains('open') ? document.getElementById('programs-drawer') : null,
     document.getElementById('walk-hud-bar')?.classList.contains('visible') ? document.getElementById('walk-hud-bar') : null,
     document.getElementById('nav-status-bar')?.classList.contains('visible') ? document.getElementById('nav-status-bar') : null
   ];
@@ -9055,7 +8935,7 @@ function setupMinimapEvents() {
   });
 }
 
-// === 13. 視覺風格切換、特色班群導覽與 UI 事件綁定 ===
+// === 13. 視覺風格切換與 UI 事件綁定 ===
 function setVisualTheme(theme) {
   state.theme = theme;
   state.isNight = (theme === 'night');
@@ -9110,80 +8990,6 @@ function setVisualTheme(theme) {
   showToast(`已切換至「${labelMap[theme]}」3D 視覺風格`);
 }
 
-function setupProgramsDrawer() {
-  const programs = [
-    {
-      badge: '藝術才能資優 · 藝德樓 1F–3F',
-      title: '音樂班（管弦樂、國樂、鋼琴與理論作曲）',
-      desc: '設於校園西南側藝德樓，配備專業演奏廳、合唱教室、琴房群與藝德女神音樂廣場，培育國內外頂尖音樂人才。',
-      buildingId: 'yide',
-      floorKey: '1F'
-    },
-    {
-      badge: '藝術才能資優 · 藝德樓 3F–4F',
-      title: '美術班（西畫、水墨、版畫與視覺設計）',
-      desc: '擁有挑高採光畫室、素描水彩專科教室、版畫工坊與展覽藝廊，結合北投人文地景進行創作。',
-      buildingId: 'yide',
-      floorKey: '3F'
-    },
-    {
-      badge: '藝術才能資優 · 藝德樓／學生活動中心',
-      title: '舞蹈班（現代舞、芭蕾、中華民族舞蹈）',
-      desc: '配置專業彈性木地板韻律舞蹈教室與學生活動中心展演舞台，每年舉辦大型舞展。',
-      buildingId: 'activity_center',
-      floorKey: '2F'
-    },
-    {
-      badge: '科學與跨域探究 · 科學館／求真樓',
-      title: 'AI 與數理科學實驗班群',
-      desc: '整合科學館物理、化學、生物實驗室與 AI 智慧教室專科空間及生態池實地觀測場域。',
-      buildingId: 'science',
-      floorKey: '2F'
-    },
-    {
-      badge: '國際教育 · 圖書館／敏求樓／中正樓',
-      title: '雙語實驗班與國際人文班群',
-      desc: '結合 3 層樓獨立圖書館數位學習中心、國際交流專科教室與雙語課程，拓展全球視野。',
-      buildingId: 'library',
-      floorKey: '2F'
-    },
-    {
-      badge: '競技運動 · 400m 藍色跑道／格致樓／游泳池',
-      title: '體育班與校隊訓練場域（擊劍、籃球、排球、田徑）',
-      desc: '配備國際標準 400 公尺鮮藍色 PU 跑道、5 座東西向排球場、6 座籃球場、游泳池與格致樓擊劍練習室。',
-      buildingId: 'sports_courts',
-      floorKey: 'ALL'
-    }
-  ];
-
-  const listEl = document.getElementById('programs-list');
-  const drawerEl = document.getElementById('programs-drawer');
-  if (!listEl || !drawerEl) return;
-
-  listEl.innerHTML = '';
-  programs.forEach((p) => {
-    const card = document.createElement('div');
-    card.className = 'program-card';
-    card.innerHTML = `
-      <span class="program-badge">${p.badge}</span>
-      <h4>${p.title}</h4>
-      <p>${p.desc}</p>
-    `;
-    card.addEventListener('click', () => {
-      drawerEl.classList.remove('open');
-      selectBuilding(p.buildingId, p.floorKey, null, true);
-    });
-    listEl.appendChild(card);
-  });
-
-  document.getElementById('btn-programs')?.addEventListener('click', () => {
-    drawerEl.classList.toggle('open');
-  });
-  document.getElementById('programs-close')?.addEventListener('click', () => {
-    drawerEl.classList.remove('open');
-  });
-}
-
 function setupWalkSpawnButtons() {
   const spawns = [
     { label: '校門迎賓廣場', px: 1005, py: 915, yaw: -Math.PI / 2 },
@@ -9215,7 +9021,6 @@ function setupWalkSpawnButtons() {
 }
 
 function setupUIAndInteractions() {
-  setupProgramsDrawer();
   setupWalkSpawnButtons();
 
   document.querySelectorAll('.tab-btn').forEach((btn) => {
@@ -9439,7 +9244,6 @@ function setupUIAndInteractions() {
     mobileDockToggleBtn.textContent = isCollapsed ? '路線與導覽 ▴' : '收合面板 ▾';
     if (!isCollapsed) {
       document.getElementById('right-panel')?.classList.add('collapsed');
-      document.getElementById('programs-drawer')?.classList.remove('open');
     }
   });
 

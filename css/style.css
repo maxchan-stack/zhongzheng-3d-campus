@@ -1093,7 +1093,7 @@ body.night-mode .ctrl-btn.active {
   width: 100%;
 }
 
-/* === 新增功能樣式：載入畫面、視覺風格選單、3D 動態羅盤與操控盤、第三人稱角色漫步、特色班群導覽、底部導航列 === */
+/* === 新增功能樣式：載入畫面、視覺風格選單、3D 動態羅盤與操控盤、第三人稱角色漫步、底部導航列 === */
 body.pixel-mode #canvas-container canvas {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
@@ -1378,97 +1378,6 @@ body.panel-open #compass-box {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-}
-
-/* 特色班群與科館導覽抽屜 */
-#programs-drawer {
-  position: absolute;
-  top: 76px;
-  right: 14px;
-  bottom: 38px;
-  width: 410px;
-  z-index: 22;
-  background: var(--bg-panel-solid);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
-  display: none;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-#programs-drawer.open {
-  display: flex;
-}
-
-.programs-grid {
-  padding: 14px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.prog-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-left: 4px solid var(--accent);
-  border-radius: var(--radius-md);
-  padding: 11px 13px;
-  cursor: pointer;
-  transition: transform 0.12s, border-color 0.15s, background 0.15s;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.prog-card:hover {
-  background: var(--accent-light);
-  transform: translateY(-1px);
-}
-
-.prog-card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.prog-card-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-.prog-card-bldg {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 99px;
-  background: var(--bg-subtle);
-  color: var(--accent);
-}
-
-.prog-card-desc {
-  font-size: 12px;
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-.prog-card-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 2px;
-}
-
-.prog-tag {
-  font-size: 10.5px;
-  font-family: var(--font-mono);
-  background: var(--bg-subtle);
-  color: var(--text-main);
-  padding: 2px 6px;
-  border-radius: 4px;
 }
 
 /* 底部中央：第三人稱地面漫步冒險 HUD 控制列 */
@@ -2041,19 +1950,6 @@ body.panel-open #compass-box {
   .pdf-room-cell {
     min-width: 52px;
     font-size: 10.5px;
-  }
-
-  /* 特色班群抽屜自適應滿版底部滑出 */
-  #programs-drawer {
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    max-width: 100vw;
-    max-height: 56vh;
-    border-radius: 16px 16px 0 0;
-    z-index: 36;
   }
 
   /* 浮動標籤在行動裝置上精簡尺寸並省略次要樓層角標，防止長字串橫跨整個窄螢幕 */

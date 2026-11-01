@@ -70,7 +70,6 @@ const html = `<!DOCTYPE html>
     <div class="top-controls">
       <button id="btn-reset-cam" class="ctrl-btn active" title="回到全校最佳全覽視角">最佳全覽</button>
       <button id="btn-mode-fpv" class="ctrl-btn" title="以中正高中同學角色在校園地面漫步探索">地面實境漫步</button>
-      <button id="btn-programs" class="ctrl-btn" title="檢視中正高中藝才班、實驗班與特色教學空間">特色班群導覽</button>
       <div class="theme-dropdown" id="theme-dropdown">
         <button id="btn-theme-menu" class="ctrl-btn" title="切換 3D 視覺風格主題"><span id="theme-menu-label">晴空寫實</span> ▾</button>
         <div id="theme-menu" class="theme-menu">
@@ -244,18 +243,6 @@ const html = `<!DOCTYPE html>
 
   <!-- 收合右側介紹抽屜時的浮動展開按鈕 -->
   <button type="button" id="reopen-drawer-pill">展開大樓介紹 ▴</button>
-
-  <!-- 特色班群與科館導覽抽屜 -->
-  <aside id="programs-drawer">
-    <div class="panel-header">
-      <div>
-        <div class="panel-category">中正高中多元與藝術實驗教育</div>
-        <h2 class="panel-title">特色班群與專科場館導覽</h2>
-      </div>
-      <button id="programs-close" class="panel-close" title="關閉面板">✕</button>
-    </div>
-    <div id="programs-list" class="programs-grid"></div>
-  </aside>
 
   <!-- 底部中央：第三人稱地面漫步冒險控制列 (支援男同學/女同學角色、第三/第一人稱、步行/跑步與出生點瞬移) -->
   <div id="walk-hud-bar">

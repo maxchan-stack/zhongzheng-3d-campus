@@ -3743,7 +3743,6 @@ function selectBuilding(buildingId, floorKey = 'ALL', highlightRoomId = null, fl
     document.getElementById('left-dock')?.classList.add('mobile-collapsed');
     const toggleBtn = document.getElementById('mobile-dock-toggle-btn');
     if (toggleBtn) toggleBtn.textContent = '路線與導覽 ▴';
-    document.getElementById('programs-drawer')?.classList.remove('open');
   }
 
   renderRightPanel(bObj.data, floorKey, highlightRoomId);
@@ -4462,12 +4461,11 @@ function updateFloatingLabels() {
   const leftDockEl = document.getElementById('left-dock');
   const leftDockExpanded = window.innerWidth <= 1024 && leftDockEl && !leftDockEl.classList.contains('mobile-collapsed');
   const navVisible = document.getElementById('nav-status-bar')?.classList.contains('visible');
-  const progOpen = document.getElementById('programs-drawer')?.classList.contains('open');
   const reopenPill = document.getElementById('reopen-drawer-pill');
   if (reopenPill) {
     reopenPill.classList.toggle(
       'visible',
-      !rightOpen && !leftDockExpanded && !navVisible && !progOpen && Boolean(state.selectedBuildingId) && state.viewMode === 'birdseye'
+      !rightOpen && !leftDockExpanded && !navVisible && Boolean(state.selectedBuildingId) && state.viewMode === 'birdseye'
     );
   }
 
@@ -4477,7 +4475,6 @@ function updateFloatingLabels() {
     document.getElementById('left-dock'),
     document.getElementById('compass-box'),
     rightOpen ? rightPanelEl : null,
-    document.getElementById('programs-drawer')?.classList.contains('open') ? document.getElementById('programs-drawer') : null,
     document.getElementById('walk-hud-bar')?.classList.contains('visible') ? document.getElementById('walk-hud-bar') : null,
     document.getElementById('nav-status-bar')?.classList.contains('visible') ? document.getElementById('nav-status-bar') : null
   ];
@@ -4692,7 +4689,7 @@ function setupMinimapEvents() {
   });
 }
 
-// === 13. 視覺風格切換、特色班群導覽與 UI 事件綁定 ===
+// === 13. 視覺風格切換與 UI 事件綁定 ===
 function setVisualTheme(theme) {
   state.theme = theme;
   state.isNight = (theme === 'night');
@@ -4747,80 +4744,6 @@ function setVisualTheme(theme) {
   showToast(`已切換至「${labelMap[theme]}」3D 視覺風格`);
 }
 
-function setupProgramsDrawer() {
-  const programs = [
-    {
-      badge: '藝術才能資優 · 藝德樓 1F–3F',
-      title: '音樂班（管弦樂、國樂、鋼琴與理論作曲）',
-      desc: '設於校園西南側藝德樓，配備專業演奏廳、合唱教室、琴房群與藝德女神音樂廣場，培育國內外頂尖音樂人才。',
-      buildingId: 'yide',
-      floorKey: '1F'
-    },
-    {
-      badge: '藝術才能資優 · 藝德樓 3F–4F',
-      title: '美術班（西畫、水墨、版畫與視覺設計）',
-      desc: '擁有挑高採光畫室、素描水彩專科教室、版畫工坊與展覽藝廊，結合北投人文地景進行創作。',
-      buildingId: 'yide',
-      floorKey: '3F'
-    },
-    {
-      badge: '藝術才能資優 · 藝德樓／學生活動中心',
-      title: '舞蹈班（現代舞、芭蕾、中華民族舞蹈）',
-      desc: '配置專業彈性木地板韻律舞蹈教室與學生活動中心展演舞台，每年舉辦大型舞展。',
-      buildingId: 'activity_center',
-      floorKey: '2F'
-    },
-    {
-      badge: '科學與跨域探究 · 科學館／求真樓',
-      title: 'AI 與數理科學實驗班群',
-      desc: '整合科學館物理、化學、生物實驗室與 AI 智慧教室專科空間及生態池實地觀測場域。',
-      buildingId: 'science',
-      floorKey: '2F'
-    },
-    {
-      badge: '國際教育 · 圖書館／敏求樓／中正樓',
-      title: '雙語實驗班與國際人文班群',
-      desc: '結合 3 層樓獨立圖書館數位學習中心、國際交流專科教室與雙語課程，拓展全球視野。',
-      buildingId: 'library',
-      floorKey: '2F'
-    },
-    {
-      badge: '競技運動 · 400m 藍色跑道／格致樓／游泳池',
-      title: '體育班與校隊訓練場域（擊劍、籃球、排球、田徑）',
-      desc: '配備國際標準 400 公尺鮮藍色 PU 跑道、5 座東西向排球場、6 座籃球場、游泳池與格致樓擊劍練習室。',
-      buildingId: 'sports_courts',
-      floorKey: 'ALL'
-    }
-  ];
-
-  const listEl = document.getElementById('programs-list');
-  const drawerEl = document.getElementById('programs-drawer');
-  if (!listEl || !drawerEl) return;
-
-  listEl.innerHTML = '';
-  programs.forEach((p) => {
-    const card = document.createElement('div');
-    card.className = 'program-card';
-    card.innerHTML = `
-      <span class="program-badge">${p.badge}</span>
-      <h4>${p.title}</h4>
-      <p>${p.desc}</p>
-    `;
-    card.addEventListener('click', () => {
-      drawerEl.classList.remove('open');
-      selectBuilding(p.buildingId, p.floorKey, null, true);
-    });
-    listEl.appendChild(card);
-  });
-
-  document.getElementById('btn-programs')?.addEventListener('click', () => {
-    drawerEl.classList.toggle('open');
-  });
-  document.getElementById('programs-close')?.addEventListener('click', () => {
-    drawerEl.classList.remove('open');
-  });
-}
-
 function setupWalkSpawnButtons() {
   const spawns = [
     { label: '校門迎賓廣場', px: 1005, py: 915, yaw: -Math.PI / 2 },
@@ -4852,7 +4775,6 @@ function setupWalkSpawnButtons() {
 }
 
 function setupUIAndInteractions() {
-  setupProgramsDrawer();
   setupWalkSpawnButtons();
 
   document.querySelectorAll('.tab-btn').forEach((btn) => {
@@ -5076,7 +4998,6 @@ function setupUIAndInteractions() {
     mobileDockToggleBtn.textContent = isCollapsed ? '路線與導覽 ▴' : '收合面板 ▾';
     if (!isCollapsed) {
       document.getElementById('right-panel')?.classList.add('collapsed');
-      document.getElementById('programs-drawer')?.classList.remove('open');
     }
   });
 
