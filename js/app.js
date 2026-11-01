@@ -1853,7 +1853,7 @@ function buildGateAndEastPlazaDetails() {
   details3DGroup.add(hipRoof);
 }
 
-// === 黑色校犬群（小黑、歐告、黑皮、黑輪）與樹梢顯著臺灣特有種「臺灣藍鵲」 ===
+// === 黑色校犬群（小黑、歐告、黑皮、黑輪）與樹梢零散臺灣特有種「臺灣藍鵲」 ===
 function buildCampusDogsAndMagpies() {
   const furMat = new THREE.MeshStandardMaterial({ color: 0x181818, roughness: 0.72 });
   const collarMat = new THREE.MeshStandardMaterial({ color: 0xd62828, roughness: 0.4 });
@@ -1919,7 +1919,7 @@ function buildCampusDogsAndMagpies() {
     eyeR.position.set(0.09, 0.05, 0.14);
     headGroup.add(eyeL, eyeR);
 
-    // 臺灣高砂犬標誌性直立尖耳 (Pricked Ears)
+    // 臺灣高砂犬直立尖耳 (Pricked Ears)
     const earGeo = new THREE.ConeGeometry(0.06, 0.18, 4);
     const earL = new THREE.Mesh(earGeo, furMat);
     earL.position.set(-0.11, 0.18, -0.02);
@@ -1933,7 +1933,6 @@ function buildCampusDogsAndMagpies() {
 
     // 四肢 (Legs)
     if (isLying) {
-      // 趴姿四肢微曲
       const pawGeo = new THREE.BoxGeometry(0.12, 0.10, 0.24);
       [[-0.18, 0.05, 0.28], [0.18, 0.05, 0.28], [-0.20, 0.05, -0.22], [0.20, 0.05, -0.22]].forEach(([lx, ly, lz]) => {
         const paw = new THREE.Mesh(pawGeo, furMat);
@@ -1942,7 +1941,6 @@ function buildCampusDogsAndMagpies() {
         dog.add(paw);
       });
     } else {
-      // 站立四肢
       const legGeo = new THREE.CylinderGeometry(0.045, 0.04, 0.42, 6);
       const pawGeo = new THREE.BoxGeometry(0.09, 0.06, 0.12);
       [
@@ -1960,7 +1958,7 @@ function buildCampusDogsAndMagpies() {
       });
     }
 
-    // 臺灣犬特徵：經典向上捲曲之鐮刀尾 (Sickle Tail)
+    // 經典向上捲曲之鐮刀尾 (Sickle Tail)
     const tailGroup = new THREE.Group();
     tailGroup.position.set(0, isLying ? 0.32 : 0.58, -0.34);
     const tailSeg1 = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.045, 0.22, 6), furMat);
@@ -1975,12 +1973,12 @@ function buildCampusDogsAndMagpies() {
     return { group: dog, headGroup, tailGroup, name };
   }
 
-  // 4 隻黑色校犬配置位置
+  // 4 隻黑色校犬零散配置於校園主要出入口與操場草坪
   const dogConfigs = [
-    { name: '小黑', px: 1040, py: 916, yaw: -0.75, isLying: false, intro: '校門口大門值勤警備隊長，每天守護同學平安上下學！' },
-    { name: '歐告', px: 1085, py: 760, yaw: 1.15, isLying: true, intro: '在中正園草坪享受溫暖陽光曬太陽，個性溫和親人！' },
-    { name: '黑皮', px: 785, py: 575, yaw: 0.32, isLying: false, intro: '大花圃老榕樹下的運動健將，最愛看排球與籃球比賽！' },
-    { name: '黑輪', px: 360, py: 125, yaw: -1.45, isLying: false, intro: '田徑場跑道巡查員，陪著體育班選手一同晨操熱身！' }
+    { name: '小黑', px: 1040, py: 916, yaw: -0.75, isLying: false, intro: '校門口大門值勤警備隊長，守護師生上下學！' },
+    { name: '歐告', px: 1085, py: 760, yaw: 1.15, isLying: true, intro: '在中正園草坪享受溫暖陽光曬太陽，個性溫和！' },
+    { name: '黑皮', px: 785, py: 575, yaw: 0.32, isLying: false, intro: '大花圃老榕樹下的運動健將，喜歡看球賽！' },
+    { name: '黑輪', px: 360, py: 125, yaw: -1.45, isLying: false, intro: '田徑場跑道巡查員，陪著同學晨操熱身！' }
   ];
 
   dogConfigs.forEach((cfg) => {
@@ -1998,7 +1996,6 @@ function buildCampusDogsAndMagpies() {
       intro: cfg.intro
     });
 
-    // 登錄實體碰撞體（人物不能穿過黑色小狗）
     collisionCircles.push({
       x: wx,
       z: wz,
@@ -2008,8 +2005,8 @@ function buildCampusDogsAndMagpies() {
     });
   });
 
-  // === 54 隻大幅放大顯著者臺灣特有種「臺灣藍鵲（長尾山娘）」===
-  // 尺寸放大 2.4 倍，色彩更耀眼，具備微弱寶藍色自發光，不再埋藏在樹冠中央，而是分佈在開闊向陽枝枒、大門橫樑與圍欄！
+  // === 臺灣特有種「臺灣藍鵲（長尾山娘）」===
+  // 嚴格落實要求：100% 棲息於樹上（絕不在地面），絕不群聚，採用空間最小間距演算法均勻零散分佈於全校樹梢！
   const blackMat = new THREE.MeshStandardMaterial({ color: 0x121212, roughness: 0.6 });
   const royalBlueMat = new THREE.MeshStandardMaterial({
     color: 0x1875d2,
@@ -2102,95 +2099,65 @@ function buildCampusDogsAndMagpies() {
     return { group: bird, headGroup, tailGroup };
   }
 
-  // 54 隻藍鵲精準分佈點：向陽外緣、建築標誌、老樹垂枝（避開樹頂盲點）
-  const magpiePlacements = [
-    // 1. 校門口簍空金字石柱碑頂部橫樑 (px: 1054, py: 890..895, y: 7.6m，一進門最醒目的地標)
-    { px: 1054, py: 890, y: 7.6, yaw: 0.4 },
-    { px: 1054, py: 896, y: 7.6, yaw: -0.6 },
+  // 從全校 570 棵樹木資料中，篩選全校各區樹木，並以空間最小距離（至少 32 公尺）過濾，保證「零散分佈在樹上，絕不群聚」
+  const allTrees = (window.CAMPUS_TREES && window.CAMPUS_TREES.trees) || [];
+  const selectedTreeMagpies = [];
+  const MIN_DIST_SQ = (32 / SCALE) * (32 / SCALE); // 像素距離平方閥值（約 118 像素，即實體距離 32 公尺）
 
-    // 2. 警衛室花架與自動鐵門立柱 (y: 2.2m..3.8m)
-    { px: 1022, py: 868, y: 3.8, yaw: 1.2 },
-    { px: 1018, py: 874, y: 3.6, yaw: -1.5 },
-    { px: 1068, py: 894, y: 2.1, yaw: 0.8 },
+  // 優先分區遍歷全校各個主要綠帶（田徑場周圍、大花圃、中正園、活動中心南側、生態池、外圍街道行道樹）
+  for (let i = 0; i < allTrees.length && selectedTreeMagpies.length < 28; i++) {
+    // 偽亂數挑選樹木以均勻遍歷全校各區
+    const candidateIdx = (i * 19 + 7) % allTrees.length;
+    const [tpx, tpy, tr, tone] = allTrees[candidateIdx];
 
-    // 3. 中正園圓形草坪假山與老榕樹向陽突出低枝 (px: 1070..1100, py: 740..780, y: 3.2m..4.6m)
-    { px: 1074, py: 746, y: 3.6, yaw: -0.8 },
-    { px: 1092, py: 752, y: 4.2, yaw: 1.5 },
-    { px: 1084, py: 768, y: 3.8, yaw: 2.4 },
-    { px: 1068, py: 760, y: 3.4, yaw: -2.1 },
-    { px: 1098, py: 772, y: 4.5, yaw: 0.1 },
-    { px: 1088, py: 740, y: 3.9, yaw: 1.8 },
+    // 檢查與已選取藍鵲之樹木間距，過近則跳過，確保絕對零散
+    let tooClose = false;
+    for (const sel of selectedTreeMagpies) {
+      const dx = tpx - sel.tpx;
+      const dy = tpy - sel.py;
+      if (dx * dx + dy * dy < MIN_DIST_SQ) {
+        tooClose = true;
+        break;
+      }
+    }
+    if (tooClose) continue;
 
-    // 4. 活動中心南側紅框新植景觀樹林向陽樹梢 (px: 1160..1310, py: 680..810, y: 3.5m..5.5m)
-    { px: 1162, py: 685, y: 4.2, yaw: 0.7 },
-    { px: 1185, py: 692, y: 4.8, yaw: -1.2 },
-    { px: 1210, py: 700, y: 3.8, yaw: 2.1 },
-    { px: 1235, py: 712, y: 5.2, yaw: -0.4 },
-    { px: 1260, py: 725, y: 4.5, yaw: 1.1 },
-    { px: 1285, py: 738, y: 3.9, yaw: -2.3 },
-    { px: 1308, py: 750, y: 4.8, yaw: 0.5 },
-    { px: 1172, py: 720, y: 4.0, yaw: -0.9 },
-    { px: 1198, py: 735, y: 5.0, yaw: 1.7 },
-    { px: 1222, py: 750, y: 3.7, yaw: -1.8 },
-    { px: 1248, py: 765, y: 4.6, yaw: 0.3 },
-    { px: 1272, py: 780, y: 4.1, yaw: 2.6 },
-    { px: 1295, py: 795, y: 5.3, yaw: -1.5 },
-    { px: 1215, py: 785, y: 3.9, yaw: 1.4 },
+    // 計算該樹木之精準樹幹高度與樹冠半徑
+    const crownR = Math.max(1.5, Math.min(6, tr * SCALE));
+    const rand = treeRand(tpx, tpy, 1);
+    const trunkH = crownR * (1.1 + rand * 0.35) + 0.6;
+    const crownH = crownR * (0.95 + treeRand(tpx, tpy, 2) * 0.2);
 
-    // 5. 400 公尺藍色田徑場西側雙排大樹向外突出枝枒 (px: 210..690, py: 86..108, y: 3.8m..5.2m)
-    { px: 215, py: 92, y: 4.2, yaw: 1.6 },
-    { px: 268, py: 88, y: 4.8, yaw: -1.1 },
-    { px: 320, py: 94, y: 3.9, yaw: 0.4 },
-    { px: 375, py: 90, y: 5.1, yaw: 2.2 },
-    { px: 430, py: 96, y: 4.4, yaw: -2.0 },
-    { px: 485, py: 91, y: 4.7, yaw: 0.9 },
-    { px: 540, py: 95, y: 3.8, yaw: -0.7 },
-    { px: 595, py: 89, y: 5.0, yaw: 1.3 },
-    { px: 645, py: 94, y: 4.3, yaw: -1.7 },
-    { px: 690, py: 90, y: 4.9, yaw: 0.2 },
+    // 嚴格設置在「樹木上層枝枒外緣」（高度 5.2m ~ 8.5m，100% 在樹上，絕不在地面）
+    const ang = treeRand(tpx, tpy, 15) * Math.PI * 2;
+    const branchDist = crownR * (0.65 + treeRand(tpx, tpy, 16) * 0.2);
+    const wx = pxToWorldX(tpx) + Math.cos(ang) * branchDist;
+    const wz = pyToWorldZ(tpy) + Math.sin(ang) * branchDist;
+    const birdY = trunkH + crownH * (0.48 + treeRand(tpx, tpy, 17) * 0.22); // 樹梢中上部開闊枝枒
 
-    // 6. 排球場看台後方與大花圃大榕樹垂枝 (px: 620..830, py: 530..610, y: 2.8m..4.6m)
-    { px: 625, py: 575, y: 3.8, yaw: -1.4 },
-    { px: 665, py: 585, y: 4.5, yaw: 0.6 },
-    { px: 705, py: 565, y: 3.2, yaw: 2.0 },
-    { px: 745, py: 590, y: 4.2, yaw: -0.5 },
-    { px: 785, py: 555, y: 3.5, yaw: 1.1 },
-    { px: 825, py: 580, y: 4.6, yaw: -2.4 },
-    { px: 645, py: 545, y: 4.0, yaw: 0.8 },
-    { px: 725, py: 605, y: 3.6, yaw: -1.9 },
-    { px: 765, py: 535, y: 4.4, yaw: 1.7 },
-    { px: 805, py: 600, y: 3.9, yaw: -0.3 },
+    selectedTreeMagpies.push({
+      tpx, py: tpy, wx, wz, birdY,
+      yaw: ang + Math.PI / 2 + (treeRand(tpx, tpy, 18) - 0.5) * 0.5
+    });
+  }
 
-    // 7. 生態池深林岸邊低垂枝枒 (px: 640..740, py: 710..790, y: 2.6m..4.4m)
-    { px: 645, py: 720, y: 3.2, yaw: 1.2 },
-    { px: 675, py: 735, y: 4.1, yaw: -1.6 },
-    { px: 705, py: 715, y: 3.5, yaw: 0.5 },
-    { px: 735, py: 740, y: 4.3, yaw: 2.3 },
-    { px: 655, py: 765, y: 2.9, yaw: -0.8 },
-    { px: 685, py: 780, y: 4.0, yaw: 1.9 },
-    { px: 715, py: 770, y: 3.7, yaw: -2.2 },
-    { px: 660, py: 745, y: 3.4, yaw: 0.1 },
-    { px: 725, py: 785, y: 4.2, yaw: -1.1 }
-  ];
-
-  magpiePlacements.forEach((p) => {
+  // 實體化所有零散樹上藍鵲
+  selectedTreeMagpies.forEach((p) => {
     const m = createMagpieMesh();
-    const wx = pxToWorldX(p.px);
-    const wz = pyToWorldZ(p.py);
-    m.group.position.set(wx, p.y, wz);
+    m.group.position.set(p.wx, p.birdY, p.wz);
     m.group.rotation.y = p.yaw;
     details3DGroup.add(m.group);
 
     animatedAnimals.magpies.push({
       ...m,
-      wx, wz,
-      baseY: p.y,
+      wx: p.wx, wz: p.wz,
+      baseY: p.birdY,
       seed: Math.random() * 100
     });
   });
 }
 
-// === 運動學生（田徑場、排球場、籃球場）與校園道路漫步師生 NPC 群 ===
+// === 運動學生與校園道路漫步師生 NPC 群（零散分佈，拒絕群聚） ===
 function buildCampusSportsAndWalkwayNPCs() {
   // 1. 共用材質定義
   const uniformShirtMat = new THREE.MeshStandardMaterial({ color: 0xf5f7fa, roughness: 0.5 });
@@ -2214,16 +2181,13 @@ function buildCampusSportsAndWalkwayNPCs() {
   const briefcaseMat = new THREE.MeshStandardMaterial({ color: 0x4a2e1d, roughness: 0.5 });
   const binderMat = new THREE.MeshStandardMaterial({ color: 0x2e6aa8, roughness: 0.4 });
 
-  // 運動球體材質
-  const soccerMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 });
-  const soccerPatchMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.5 });
   const basketballMat = new THREE.MeshStandardMaterial({ color: 0xdf5b12, roughness: 0.55 });
   const volleyballMat = new THREE.MeshStandardMaterial({ color: 0xf0e68c, roughness: 0.4 });
 
   // 人形產生器
   function createHumanoid({
     gender = 'boy',
-    role = 'student_walk', // 'student_walk' | 'student_run' | 'teacher_walk' | 'volleyball' | 'basketball' | 'soccer' | 'stretch'
+    role = 'student_walk',
     poseType = 'walk',
     shirtMat = uniformShirtMat,
     bottomMat = uniformPantsMat,
@@ -2234,7 +2198,7 @@ function buildCampusSportsAndWalkwayNPCs() {
   }) {
     const root = new THREE.Group();
 
-    // 軀幹 (Torso, 寬 0.46, 高 0.56, 厚 0.24)
+    // 軀幹 (Torso)
     const torso = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.56, 0.24), shirtMat);
     torso.position.set(0, 0.98, 0);
     torso.castShadow = true;
@@ -2275,7 +2239,7 @@ function buildCampusSportsAndWalkwayNPCs() {
     }
     root.add(headGroup);
 
-    // 配件：書包 / 公事包 / 講義夾
+    // 配件
     if (hasBag) {
       const bag = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.40, 0.16), bagNavyMat);
       bag.position.set(0, 1.00, -0.18);
@@ -2307,29 +2271,13 @@ function buildCampusSportsAndWalkwayNPCs() {
       return p;
     }
 
-    const armMat = shirtMat;
-    const legMat = bottomMat;
+    const leftArm = makePivot(-0.31, 1.24, 0, 0.14, 0.50, 0.14, shirtMat);
+    const rightArm = makePivot(0.31, 1.24, 0, 0.14, 0.50, 0.14, shirtMat);
+    const leftLeg = makePivot(-0.13, 0.70, 0, 0.16, 0.68, 0.16, bottomMat);
+    const rightLeg = makePivot(0.13, 0.70, 0, 0.16, 0.68, 0.16, bottomMat);
 
-    const leftArm = makePivot(-0.31, 1.24, 0, 0.14, 0.50, 0.14, armMat);
-    const rightArm = makePivot(0.31, 1.24, 0, 0.14, 0.50, 0.14, armMat);
-    const leftLeg = makePivot(-0.13, 0.70, 0, 0.16, 0.68, 0.16, legMat);
-    const rightLeg = makePivot(0.13, 0.70, 0, 0.16, 0.68, 0.16, legMat);
-
-    // 依姿態給定初始關節角度
-    if (poseType === 'spike') {
-      // 網前起跳暴扣
-      rightArm.rotation.x = -2.3; // 右手大幅後拉高舉扣球
-      leftArm.rotation.x = -1.2;  // 左手前伸維持平衡
-      leftLeg.rotation.x = 0.45;  // 雙腿屈膝滯空
-      rightLeg.rotation.x = 0.35;
-    } else if (poseType === 'block') {
-      // 雙人起跳攔網
-      leftArm.rotation.x = -2.7;  // 雙手垂直高舉過網
-      rightArm.rotation.x = -2.7;
-      leftLeg.rotation.x = 0.3;
-      rightLeg.rotation.x = 0.3;
-    } else if (poseType === 'pass') {
-      // 低手墊球
+    // 姿態微調
+    if (poseType === 'pass') {
       leftArm.rotation.x = -0.75;
       rightArm.rotation.x = -0.75;
       leftArm.rotation.z = -0.22;
@@ -2337,19 +2285,16 @@ function buildCampusSportsAndWalkwayNPCs() {
       leftLeg.rotation.x = -0.35;
       rightLeg.rotation.x = -0.35;
     } else if (poseType === 'shoot') {
-      // 籃球跳投
       rightArm.rotation.x = -2.4;
       leftArm.rotation.x = -1.8;
       leftLeg.rotation.x = 0.25;
       rightLeg.rotation.x = 0.25;
     } else if (poseType === 'dribble') {
-      // 運球突破壓低重心
       rightArm.rotation.x = -0.65;
       leftArm.rotation.x = 0.45;
       leftLeg.rotation.x = -0.4;
       rightLeg.rotation.x = 0.4;
     } else if (poseType === 'stretch') {
-      // 弓箭步伸展
       leftLeg.rotation.x = -0.7;
       rightLeg.rotation.x = 0.8;
       leftArm.rotation.x = -0.3;
@@ -2359,25 +2304,19 @@ function buildCampusSportsAndWalkwayNPCs() {
     return { root, headGroup, leftArm, rightArm, leftLeg, rightLeg };
   }
 
-  // 2. 建立田徑場運動學生（跑道 8 人跑步、中央草坪 8 人踢球與拉筋）
+  // === 零散分佈：田徑場運動學生（400 公尺超大範圍僅零散 4 人，彼此間隔 60～100 公尺）===
   const trackRunners = [
-    // 西側跑道（由西向東奔馳）
-    { px: 290, py: 132, yaw: Math.PI / 2, shirt: peBlueShirtMat, name: '體育班 400 接力第一棒' },
-    { px: 350, py: 135, yaw: Math.PI / 2, shirt: peOrangeShirtMat, name: '田徑隊衝刺選手' },
-    { px: 410, py: 132, yaw: Math.PI / 2, shirt: peWhiteShirtMat, name: '高二體育課跑步學生' },
-    { px: 470, py: 135, yaw: Math.PI / 2, shirt: peBlueShirtMat, name: '體育班 400 接力第二棒' },
-
-    // 東側跑道（由東向西衝刺）
-    { px: 320, py: 444, yaw: -Math.PI / 2, shirt: peOrangeShirtMat, name: '中正高中長跑選手' },
-    { px: 380, py: 441, yaw: -Math.PI / 2, shirt: peBlueShirtMat, name: '田徑隊彎道跨步選手' },
-    { px: 450, py: 444, yaw: -Math.PI / 2, shirt: peWhiteShirtMat, name: '高一熱身慢跑同學' },
-    { px: 520, py: 441, yaw: -Math.PI / 2, shirt: peOrangeShirtMat, name: '田徑隊衝刺主力' }
+    { px: 360, py: 132, yaw: Math.PI / 2, shirt: peBlueShirtMat, name: '田徑隊同學（北跑道慢跑）' },
+    { px: 420, py: 444, yaw: -Math.PI / 2, shirt: peOrangeShirtMat, name: '長跑社同學（南跑道晨操）' },
+    { px: 240, py: 288, yaw: 0, shirt: peWhiteShirtMat, name: '高二體育生（西彎道快走）' },
+    { px: 380, py: 280, yaw: 0.5, shirt: peBlueShirtMat, pose: 'stretch', name: '草坪伸展同學' }
   ];
 
   trackRunners.forEach((cfg) => {
+    const isStretch = cfg.pose === 'stretch';
     const h = createHumanoid({
-      role: 'student_run',
-      poseType: 'run',
+      role: isStretch ? 'stretch' : 'student_run',
+      poseType: isStretch ? 'stretch' : 'run',
       shirtMat: cfg.shirt,
       bottomMat: peShortsNavyMat,
       hasBag: false
@@ -2390,137 +2329,28 @@ function buildCampusSportsAndWalkwayNPCs() {
 
     campusNpcs.sports.push({
       ...h,
-      role: 'runner',
+      role: isStretch ? 'stretcher' : 'runner',
       wx, wz,
       baseY: 0.35,
-      speed: 0.016,
-      amp: 0.85,
+      speed: isStretch ? 0.005 : 0.016,
+      amp: isStretch ? 0.2 : 0.85,
       seed: Math.random() * 50
     });
 
     collisionCircles.push({
       x: wx, z: wz, r: 0.55, type: 'npc',
       name: cfg.name,
-      dialog: '今天田徑場天氣超棒，正在全力衝刺練習中！'
+      dialog: isStretch ? '運動前要充分做好伸展拉筋！' : '田徑場空氣真好，正在按配速練習！'
     });
   });
 
-  // 中央足球草皮群（4 位踢球 + 4 位拉筋熱身 + 1 顆足球）
-  const fieldStudents = [
-    { px: 360, py: 270, yaw: 0.8, pose: 'dribble', shirt: peWhiteShirtMat, name: '足球社 前鋒' },
-    { px: 380, py: 275, yaw: -2.3, pose: 'run', shirt: peBlueShirtMat, name: '足球社 中場' },
-    { px: 420, py: 265, yaw: 1.6, pose: 'dribble', shirt: peOrangeShirtMat, name: '足球社 邊鋒' },
-    { px: 440, py: 290, yaw: -1.2, pose: 'run', shirt: peWhiteShirtMat, name: '足球社 後衛' },
-
-    { px: 310, py: 230, yaw: 0.4, pose: 'stretch', shirt: peBlueShirtMat, name: '熱身伸展同學 A' },
-    { px: 330, py: 240, yaw: -0.7, pose: 'stretch', shirt: peOrangeShirtMat, name: '熱身伸展同學 B' },
-    { px: 480, py: 320, yaw: 2.1, pose: 'stretch', shirt: peWhiteShirtMat, name: '熱身伸展同學 C' },
-    { px: 500, py: 335, yaw: -1.9, pose: 'stretch', shirt: peBlueShirtMat, name: '熱身伸展同學 D' }
+  // === 零散分佈：排球場（僅第 3 面球場有 2 人輕鬆對傳練習，其餘 4 面完全空曠）===
+  const vbCourt = [
+    { px: 834, py: 310.5, y: 0.35, yaw: 0, pose: 'pass', name: '排球社同學 A' },
+    { px: 854, py: 310.5, y: 0.35, yaw: Math.PI, pose: 'pass', name: '排球社同學 B' }
   ];
 
-  fieldStudents.forEach((cfg) => {
-    const h = createHumanoid({
-      role: cfg.pose === 'stretch' ? 'stretch' : 'soccer',
-      poseType: cfg.pose,
-      shirtMat: cfg.shirt,
-      bottomMat: peShortsNavyMat,
-      hasBag: false
-    });
-    const wx = pxToWorldX(cfg.px);
-    const wz = pyToWorldZ(cfg.py);
-    h.root.position.set(wx, 0.35, wz);
-    h.root.rotation.y = cfg.yaw;
-    details3DGroup.add(h.root);
-
-    campusNpcs.sports.push({
-      ...h,
-      role: cfg.pose === 'stretch' ? 'stretcher' : 'soccer',
-      wx, wz,
-      baseY: 0.35,
-      speed: 0.006,
-      amp: 0.25,
-      seed: Math.random() * 50
-    });
-
-    collisionCircles.push({
-      x: wx, z: wz, r: 0.55, type: 'npc',
-      name: cfg.name,
-      dialog: cfg.pose === 'stretch' ? '運動前要充分做好伸展拉筋，預防運動傷害！' : '傳球！注意身後的防守空檔！'
-    });
-  });
-
-  // 草坪足球
-  const ballMesh = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 10), soccerMat);
-  ballMesh.position.set(pxToWorldX(372), 0.54, pyToWorldZ(272));
-  ballMesh.castShadow = true;
-  details3DGroup.add(ballMesh);
-
-  // 3. 建立排球場運動學生（2 面球場共 16 人 + 2 顆排球）
-  // 第 2 面球場 (py = 250, 4 vs 4 攻防)
-  const vbCourt1 = [
-    // 網子北側（扣球隊伍）
-    { px: 836, py: 250, y: 1.45, yaw: 0, pose: 'spike', name: '排球隊 主攻手（起跳暴扣）' },
-    { px: 830, py: 250, y: 0.35, yaw: 0, pose: 'dribble', name: '排球隊 二傳托球手' },
-    { px: 820, py: 243, y: 0.35, yaw: 0.2, pose: 'pass', name: '排球隊 自由球員（接應）' },
-    { px: 820, py: 257, y: 0.35, yaw: -0.2, pose: 'pass', name: '排球隊 後排防守手' },
-
-    // 網子南側（防守與攔網隊伍）
-    { px: 852, py: 248, y: 1.35, yaw: Math.PI, pose: 'block', name: '排球隊 攔網手 A' },
-    { px: 852, py: 253, y: 1.35, yaw: Math.PI, pose: 'block', name: '排球隊 攔網手 B' },
-    { px: 866, py: 244, y: 0.35, yaw: Math.PI - 0.2, pose: 'pass', name: '排球隊 後排接球手' },
-    { px: 866, py: 256, y: 0.35, yaw: Math.PI + 0.2, pose: 'pass', name: '排球隊 隊長（準備救球）' }
-  ];
-
-  vbCourt1.forEach((cfg) => {
-    const h = createHumanoid({
-      role: 'volleyball',
-      poseType: cfg.pose,
-      shirtMat: cfg.px < 844 ? peBlueShirtMat : peOrangeShirtMat,
-      bottomMat: peShortsNavyMat,
-      hasBag: false
-    });
-    const wx = pxToWorldX(cfg.px);
-    const wz = pyToWorldZ(cfg.py);
-    h.root.position.set(wx, cfg.y, wz);
-    h.root.rotation.y = cfg.yaw;
-    details3DGroup.add(h.root);
-
-    campusNpcs.sports.push({
-      ...h,
-      role: 'volleyball',
-      wx, wz,
-      baseY: cfg.y,
-      isAir: cfg.y > 0.5,
-      seed: Math.random() * 50
-    });
-
-    collisionCircles.push({
-      x: wx, z: wz, r: 0.55, type: 'npc',
-      name: cfg.name,
-      dialog: '漂亮的一傳！看我的強力扣殺！'
-    });
-  });
-
-  // 球網上方排球
-  const vbBall1 = new THREE.Mesh(new THREE.SphereGeometry(0.20, 10, 10), volleyballMat);
-  vbBall1.position.set(pxToWorldX(842), 2.75, pyToWorldZ(249.5));
-  vbBall1.castShadow = true;
-  details3DGroup.add(vbBall1);
-
-  // 第 4 面排球場 (py = 370, 8 人發球與對空接球練習)
-  const vbCourt2 = [
-    { px: 822, py: 362, y: 0.35, yaw: 0.3, pose: 'pass', name: '高二排球社 發球手' },
-    { px: 825, py: 378, y: 0.35, yaw: -0.2, pose: 'dribble', name: '高二排球社 托球練習' },
-    { px: 834, py: 370, y: 0.35, yaw: 0, pose: 'pass', name: '高二排球社 墊球練習' },
-    { px: 816, py: 370, y: 0.35, yaw: 0.1, pose: 'pass', name: '高二排球社 準備接球' },
-
-    { px: 864, py: 362, y: 0.35, yaw: Math.PI - 0.2, pose: 'pass', name: '高一排球新生 A' },
-    { px: 862, py: 378, y: 0.35, yaw: Math.PI + 0.1, pose: 'pass', name: '高一排球新生 B' },
-    { px: 854, py: 370, y: 0.35, yaw: Math.PI, pose: 'dribble', name: '高一排球新生 C' },
-    { px: 872, py: 370, y: 0.35, yaw: Math.PI, pose: 'pass', name: '高一排球新生 D' }
-  ];
-
-  vbCourt2.forEach((cfg) => {
+  vbCourt.forEach((cfg) => {
     const h = createHumanoid({
       role: 'volleyball',
       poseType: cfg.pose,
@@ -2546,31 +2376,23 @@ function buildCampusSportsAndWalkwayNPCs() {
     collisionCircles.push({
       x: wx, z: wz, r: 0.55, type: 'npc',
       name: cfg.name,
-      dialog: '手腕打平、壓低重心，把球穩穩送到二傳手頭頂！'
+      dialog: '手腕打平、壓低重心，接得漂亮！'
     });
   });
 
-  const vbBall2 = new THREE.Mesh(new THREE.SphereGeometry(0.20, 10, 10), volleyballMat);
-  vbBall2.position.set(pxToWorldX(840), 1.95, pyToWorldZ(370));
-  vbBall2.castShadow = true;
-  details3DGroup.add(vbBall2);
+  // 對傳之排球
+  const vbBall = new THREE.Mesh(new THREE.SphereGeometry(0.20, 10, 10), volleyballMat);
+  vbBall.position.set(pxToWorldX(844), 2.1, pyToWorldZ(310.5));
+  vbBall.castShadow = true;
+  details3DGroup.add(vbBall);
 
-  // 4. 建立籃球場 3 on 3 鬥牛與外線投籃學生（16 人 + 2 顆籃球）
-  // 西區第 2 場 (px: 950, py: 225, 3 on 3 鬥牛)
-  const bbCourt1 = [
-    { px: 940, py: 225, y: 0.35, yaw: 0.5, pose: 'dribble', shirt: peOrangeShirtMat, name: '籃球隊 控球後衛（突破運球）' },
-    { px: 946, py: 225, y: 0.35, yaw: -2.6, pose: 'pass', shirt: peBlueShirtMat, name: '籃球隊 防守大鎖（貼身緊逼）' },
-    { px: 928, py: 223, y: 1.25, yaw: 0.8, pose: 'shoot', shirt: peOrangeShirtMat, name: '籃球隊 得分後衛（挑籃上籃）' },
-    { px: 924, py: 227, y: 0.35, yaw: -1.9, pose: 'block', shirt: peBlueShirtMat, name: '籃球隊 中鋒（禁區卡位）' },
-    { px: 958, py: 218, y: 0.35, yaw: -1.2, pose: 'stretch', shirt: peOrangeShirtMat, name: '籃球隊 側翼射手' },
-    { px: 956, py: 232, y: 0.35, yaw: 1.4, pose: 'pass', shirt: peBlueShirtMat, name: '籃球隊 大前鋒' },
-
-    // 外圍練投與加油同學
-    { px: 975, py: 220, y: 0.35, yaw: -1.6, pose: 'dribble', shirt: peWhiteShirtMat, name: '高二籃球社 候補球員' },
-    { px: 975, py: 230, y: 0.35, yaw: -1.4, pose: 'stretch', shirt: peWhiteShirtMat, name: '高二籃球社 經理' }
+  // === 零散分佈：籃球場（僅 2 人分別在西區與東區自主練球，相隔 40 公尺）===
+  const bbCourt = [
+    { px: 950, py: 225, y: 0.35, yaw: 0.4, pose: 'dribble', shirt: peOrangeShirtMat, name: '籃球社同學（西區自主運球）' },
+    { px: 1055, py: 285, y: 1.25, yaw: 1.2, pose: 'shoot', shirt: peBlueShirtMat, name: '高三學長（東區自主跳投）' }
   ];
 
-  bbCourt1.forEach((cfg) => {
+  bbCourt.forEach((cfg) => {
     const h = createHumanoid({
       role: 'basketball',
       poseType: cfg.pose,
@@ -2596,192 +2418,76 @@ function buildCampusSportsAndWalkwayNPCs() {
     collisionCircles.push({
       x: wx, z: wz, r: 0.55, type: 'npc',
       name: cfg.name,
-      dialog: '注意掩護擋拆！空檔出來了直接出手！'
+      dialog: cfg.pose === 'shoot' ? '看這球三分弧度，空心入網！' : '練好基本運球突破步伐！'
     });
   });
 
-  // 籃球 1
-  const bbBall1 = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 12), basketballMat);
-  bbBall1.position.set(pxToWorldX(939), 0.72, pyToWorldZ(225));
-  bbBall1.castShadow = true;
-  details3DGroup.add(bbBall1);
+  const bbBall = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 12), basketballMat);
+  bbBall.position.set(pxToWorldX(948), 0.70, pyToWorldZ(225));
+  bbBall.castShadow = true;
+  details3DGroup.add(bbBall);
 
-  // 東區第 2 場 (px: 1055, py: 285, 3 on 3 外線跳投)
-  const bbCourt2 = [
-    { px: 1045, py: 285, y: 1.30, yaw: 1.2, pose: 'shoot', shirt: peBlueShirtMat, name: '高三學長（三分跳投）' },
-    { px: 1050, py: 285, y: 0.35, yaw: -1.9, pose: 'block', shirt: peOrangeShirtMat, name: '防守起跳封阻' },
-    { px: 1066, py: 282, y: 0.35, yaw: 0.7, pose: 'dribble', shirt: peBlueShirtMat, name: '籃下搶籃板球員 A' },
-    { px: 1066, py: 288, y: 0.35, yaw: -2.3, pose: 'pass', shirt: peOrangeShirtMat, name: '籃下搶籃板球員 B' },
-    { px: 1035, py: 278, y: 0.35, yaw: 1.8, pose: 'stretch', shirt: peBlueShirtMat, name: '外線導傳球員' },
-    { px: 1038, py: 292, y: 0.35, yaw: -0.6, pose: 'pass', shirt: peOrangeShirtMat, name: '防守緊盯射手' },
-
-    { px: 1025, py: 285, y: 0.35, yaw: 0.9, pose: 'dribble', shirt: peWhiteShirtMat, name: '準備上場同學 A' },
-    { px: 1075, py: 285, y: 0.35, yaw: -1.8, pose: 'stretch', shirt: peWhiteShirtMat, name: '準備上場同學 B' }
-  ];
-
-  bbCourt2.forEach((cfg) => {
-    const h = createHumanoid({
-      role: 'basketball',
-      poseType: cfg.pose,
-      shirtMat: cfg.shirt,
-      bottomMat: peShortsNavyMat,
-      hasBag: false
-    });
-    const wx = pxToWorldX(cfg.px);
-    const wz = pyToWorldZ(cfg.py);
-    h.root.position.set(wx, cfg.y, wz);
-    h.root.rotation.y = cfg.yaw;
-    details3DGroup.add(h.root);
-
-    campusNpcs.sports.push({
-      ...h,
-      role: 'basketball',
-      wx, wz,
-      baseY: cfg.y,
-      isAir: cfg.y > 0.5,
-      seed: Math.random() * 50
-    });
-
-    collisionCircles.push({
-      x: wx, z: wz, r: 0.55, type: 'npc',
-      name: cfg.name,
-      dialog: '看這球弧度超完美，空心入網！'
-    });
-  });
-
-  // 籃球 2（半空中投籃球）
-  const bbBall2 = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 12), basketballMat);
-  bbBall2.position.set(pxToWorldX(1054), 2.85, pyToWorldZ(285));
-  bbBall2.castShadow = true;
-  details3DGroup.add(bbBall2);
-
-  // 5. 建立校園主要道路漫步師生（24 位：迎賓大道 10 位、中正園 8 位、圖書館活動中心廣場 6 位）
+  // === 零散分佈：校園主要道路（全校各大動線僅零散 10 位師生，彼此間隔 50～80 公尺）===
   const walkwayNPCConfigs = [
-    // === 校門迎賓大道（從大門自動鐵門到中正樓穿堂主幹道 px: 980..1050, py: 720..880）===
+    // 1. 校門迎賓大道寬闊路面（1 位學生）
     {
-      px: 1035, py: 875, yaw: -0.2, gender: 'boy', role: 'student_walk',
+      px: 1035, py: 850, yaw: -0.2, gender: 'boy', role: 'student_walk',
       shirt: uniformShirtMat, bottom: uniformPantsMat, hasBag: true,
-      name: '中正高中 男同學', dialog: '早安！等等第一節微積分小考，趕快去格致樓教室！'
+      name: '中正高中 同學', dialog: '早安！今天第一節課在中正樓，得快點走！'
     },
+    // 2. 警衛室旁通道（1 位老師走向行政樓）
     {
-      px: 1038, py: 872, yaw: -0.25, gender: 'girl', role: 'student_walk',
-      shirt: uniformShirtMat, bottom: uniformSkirtMat, hasBag: true,
-      name: '中正高中 女同學', dialog: '今天下午有管樂社的成果發表會，在中美堂舉行喔！'
-    },
-    {
-      px: 1025, py: 835, yaw: -0.15, gender: 'boy', role: 'student_walk',
-      shirt: uniformShirtMat, bottom: uniformPantsMat, hasBag: true,
-      name: '高三理組 同學', dialog: '剛剛在警衛室遇到校犬小黑，牠今天精神真好！'
-    },
-    {
-      px: 1018, py: 805, yaw: 0.1, gender: 'girl', role: 'student_walk',
-      shirt: uniformShirtMat, bottom: uniformSkirtMat, hasBag: true,
-      name: '高一新生 同學', dialog: '中正高中的校園真的好大，花圃和林蔭步道真漂亮！'
-    },
-    {
-      px: 1028, py: 765, yaw: -0.3, gender: 'boy', role: 'student_walk',
-      shirt: uniformShirtMat, bottom: uniformPantsMat, hasBag: true,
-      name: '擊劍隊 同學', dialog: '下午要去格致樓地下擊劍練習室訓練，備戰全中運！'
-    },
-    // 任課老師（手持講義夾或公事包）
-    {
-      px: 1042, py: 845, yaw: -0.1, gender: 'boy', role: 'teacher_walk',
+      px: 1010, py: 790, yaw: -0.15, gender: 'boy', role: 'teacher_walk',
       shirt: teacherShirtMat, bottom: teacherPantsMat, hasBriefcase: true,
-      name: '教務處 英文科老師', dialog: '同學早安！今天第一節在中正樓 214 教室上課喔！'
+      name: '教務處 英文科老師', dialog: '同學早安！今天第一節在 214 教室上課喔！'
     },
+    // 3. 中正樓穿堂入口台階（1 位女同學步入）
     {
-      px: 1010, py: 785, yaw: -0.2, gender: 'girl', role: 'teacher_walk',
-      shirt: teacherPoloMat, bottom: teacherPantsMat, hasBinder: true,
-      name: '學務處 數學科老師', dialog: '同學早安，進入校門記得注意路口車輛慢行！'
-    },
-    {
-      px: 1032, py: 730, yaw: -0.05, gender: 'boy', role: 'teacher_walk',
-      shirt: teacherShirtMat, bottom: teacherPantsMat, hasBriefcase: true,
-      name: '圖書館 主任', dialog: '今天圖書館有新進科技與 AI 專題特展，歡迎大家借閱！'
-    },
-    {
-      px: 995, py: 740, yaw: -0.4, gender: 'boy', role: 'student_walk',
-      shirt: uniformShirtMat, bottom: uniformPantsMat, hasBag: true,
-      name: '美術班 同學', dialog: '正要去至聖樓專科教室畫素描，晨光灑在樹蔭下真美。'
-    },
-    {
-      px: 998, py: 736, yaw: -0.35, gender: 'girl', role: 'student_walk',
+      px: 980, py: 730, yaw: -0.3, gender: 'girl', role: 'student_walk',
       shirt: uniformShirtMat, bottom: uniformSkirtMat, hasBag: true,
-      name: '舞蹈班 同學', dialog: '等等要在學生活動中心練舞，準備校慶公演！'
+      name: '中正高中 女同學', dialog: '等等要在穿堂公布社團聯展的排練時間表。'
     },
-
-    // === 中正園環道與中美堂前林蔭步道 (px: 880..1020, py: 620..710) ===
+    // 4. 中正園環道石徑（1 位同學漫步）
     {
-      px: 955, py: 685, yaw: 1.4, gender: 'boy', role: 'student_walk',
+      px: 930, py: 660, yaw: 0.8, gender: 'boy', role: 'student_walk',
       shirt: uniformShirtMat, bottom: uniformPantsMat, hasBag: true,
-      name: '中正高中 班聯會幹部', dialog: '中正園圓形草坪老榕樹上有好多臺灣藍鵲在築巢！'
+      name: '高二 同學', dialog: '中正園圓形草坪大榕樹上看到臺灣藍鵲飛過，尾羽好長！'
     },
+    // 5. 中美堂前空曠林蔭路（1 位體育老師慢步巡視）
     {
-      px: 958, py: 688, yaw: -1.7, gender: 'girl', role: 'student_walk',
-      shirt: uniformShirtMat, bottom: uniformSkirtMat, hasBag: true,
-      name: '中正高中 社聯會幹部', dialog: '對呀，長尾巴黑白相間超顯眼，嘴喙還是鮮紅色的！'
-    },
-    {
-      px: 920, py: 660, yaw: 0.8, gender: 'boy', role: 'student_walk',
-      shirt: uniformShirtMat, bottom: uniformPantsMat, hasBag: true,
-      name: '高二文組 同學', dialog: '中美堂前這條林蔭步道夏天好涼爽，微風很舒服。'
-    },
-    {
-      px: 890, py: 640, yaw: -0.6, gender: 'girl', role: 'student_walk',
-      shirt: uniformShirtMat, bottom: uniformSkirtMat, hasBag: true,
-      name: '管樂社 同學', dialog: '中午放學要借中美堂大廳排練法國號重奏。'
-    },
-    {
-      px: 980, py: 645, yaw: 0.1, gender: 'boy', role: 'teacher_walk',
+      px: 890, py: 620, yaw: 0.1, gender: 'boy', role: 'teacher_walk',
       shirt: peBlueShirtMat, bottom: peShortsNavyMat, hasBinder: true,
-      name: '體育組組長', dialog: '各班體育股長注意，操場與排球場器材借用請遵守登記！'
+      name: '體育組 老師', dialog: '同學早，進入運動場地記得遵守各項安全規定！'
     },
+    // 6. 圖書館前寬闊廣場（1 位同學抱書前行）
     {
-      px: 1015, py: 670, yaw: -1.2, gender: 'girl', role: 'student_walk',
-      shirt: uniformShirtMat, bottom: uniformSkirtMat, hasBag: true,
-      name: '高一 同學', dialog: '剛經過大花圃，看到校犬黑皮在榕樹下乘涼睡覺，超可愛！'
-    },
-    {
-      px: 935, py: 630, yaw: 0.3, gender: 'boy', role: 'student_walk',
+      px: 1130, py: 450, yaw: 0.5, gender: 'boy', role: 'student_walk',
       shirt: uniformShirtMat, bottom: uniformPantsMat, hasBag: true,
-      name: '生物研究社 社長', dialog: '生態池旁的樹上有臺灣藍鵲群飛過，長尾山娘滑翔姿勢超優美！'
+      name: '圖書館 研讀同學', dialog: '剛借了參考書，準備去五樓自習室專心讀書。'
     },
+    // 7. 活動中心前廣場側邊（1 位女同學走過花台）
     {
-      px: 905, py: 675, yaw: -0.9, gender: 'girl', role: 'teacher_walk',
-      shirt: teacherPoloMat, bottom: teacherPantsMat, hasBinder: true,
-      name: '高二 導師', dialog: '大家走廊上腳步放輕，準備開始早自習囉！'
+      px: 1175, py: 485, yaw: 1.8, gender: 'girl', role: 'student_walk',
+      shirt: uniformShirtMat, bottom: uniformSkirtMat, hasBag: true,
+      name: '社聯會 幹部同學', dialog: '今天下午活動中心大禮堂有公演彩排！'
     },
-
-    // === 圖書館與學生活動中心前廣場 (px: 1110..1180, py: 430..495) ===
+    // 8. 至聖樓與格致樓間廊道（1 位同學快步走過）
     {
-      px: 1125, py: 445, yaw: 0.5, gender: 'boy', role: 'student_walk',
+      px: 1060, py: 650, yaw: -0.9, gender: 'boy', role: 'student_walk',
       shirt: uniformShirtMat, bottom: uniformPantsMat, hasBag: true,
-      name: '圖書館 志工同學', dialog: '圖書館二樓自習室環境超安靜，採光也很棒！'
+      name: '自然實驗班 同學', dialog: '正要去格致樓三樓專科實驗室上物理實驗課。'
     },
+    // 9. 生態池木棧道旁（1 位生物研究社同學觀察生態）
     {
-      px: 1130, py: 448, yaw: -2.4, gender: 'girl', role: 'student_walk',
-      shirt: uniformShirtMat, bottom: uniformSkirtMat, hasBag: true,
-      name: '科展代表 同學', dialog: '我們專題用 3D 模擬探討校園微氣候，成果很棒！'
-    },
-    {
-      px: 1160, py: 465, yaw: -1.1, gender: 'boy', role: 'student_walk',
+      px: 710, py: 700, yaw: 1.4, gender: 'boy', role: 'student_walk',
       shirt: uniformShirtMat, bottom: uniformPantsMat, hasBag: true,
-      name: '活動中心 音控組長', dialog: '大禮堂的音響和舞台投影設備剛完成全面升級！'
+      name: '生物研究社 同學', dialog: '生態池旁的樹上常有臺灣藍鵲築巢，環境生態維持得真好！'
     },
+    // 10. 大花圃石階旁（1 位同學散步）
     {
-      px: 1175, py: 480, yaw: 1.8, gender: 'girl', role: 'student_walk',
+      px: 780, py: 540, yaw: -0.6, gender: 'girl', role: 'student_walk',
       shirt: uniformShirtMat, bottom: uniformSkirtMat, hasBag: true,
-      name: '熱舞社 同學', dialog: '學生活動中心前廣場的大鏡子練舞超好用！'
-    },
-    {
-      px: 1145, py: 485, yaw: 0.2, gender: 'boy', role: 'teacher_walk',
-      shirt: teacherShirtMat, bottom: teacherPantsMat, hasBriefcase: true,
-      name: '學務處 訓育組長', dialog: '校園各處活動熱鬧進行，大家注意運動安全！'
-    },
-    {
-      px: 1115, py: 475, yaw: -0.4, gender: 'girl', role: 'student_walk',
-      shirt: uniformShirtMat, bottom: uniformSkirtMat, hasBag: true,
-      name: '自習室 研讀同學', dialog: '抱著參考書準備去五樓圖書館專心衝刺學測！'
+      name: '高一 新生同學', dialog: '大花圃老榕樹的氣根好壯觀，坐在這乘涼真舒服。'
     }
   ];
 
