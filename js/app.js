@@ -29,6 +29,11 @@ function worldZToPy(wz) {
   return wz / SCALE + MAP_META.height / 2;
 }
 
+const animatedAnimals = {
+  dogs: [],
+  magpies: []
+};
+
 const state = {
   viewMode: 'birdseye',      // 'birdseye' | 'fpv'
   selectedBuildingId: null,
@@ -786,6 +791,9 @@ function buildCampus3DDetails() {
 
   // 1. 校門口警衛室一側實景 3D 細節：米白嵌紅磚方格迎賓廣場、中正園圓形假山草坪景觀島、斜向教職員停車格與房車、格致樓至聖樓圓弧轉角、榮譽布條、中正樓彩虹壁畫、活動中心青綠斜屋頂
   buildGateAndEastPlazaDetails();
+
+  // 1b. 校園守護者黑色小狗群（校犬小黑、歐告、黑皮、黑輪）與樹梢隨機棲息之臺灣特有種「臺灣藍鵲」
+  buildCampusDogsAndMagpies();
 
   // 2. 裝置藝術立體雕塑群 (嚴格對齊平面圖裝置藝術綠帶中心 px: 1048, py: 565..675)
   [565, 620, 675].forEach((py, idx) => {
@@ -1835,6 +1843,280 @@ function buildGateAndEastPlazaDetails() {
   hipRoof.position.set(acCx, acBaseY + 2.1, acCz);
   hipRoof.castShadow = true;
   details3DGroup.add(hipRoof);
+}
+
+// === 黑色校犬群（小黑、歐告、黑皮、黑輪）與樹梢隨機臺灣藍鵲（臺灣特有種） ===
+function buildCampusDogsAndMagpies() {
+  const furMat = new THREE.MeshStandardMaterial({ color: 0x181818, roughness: 0.72 });
+  const collarMat = new THREE.MeshStandardMaterial({ color: 0xd62828, roughness: 0.4 });
+  const bellMat = new THREE.MeshStandardMaterial({ color: 0xf5b82a, metalness: 0.8, roughness: 0.2 });
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0x3d2010 });
+  const noseMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+
+  function createDogMesh(name, isLying = false) {
+    const dog = new THREE.Group();
+    dog.name = `DOG_${name}`;
+
+    // 軀幹 (Body)
+    const bodyH = isLying ? 0.22 : 0.46;
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.36, 0.72), furMat);
+    body.position.set(0, bodyH, 0);
+    body.castShadow = true;
+    dog.add(body);
+
+    // 胸肩部 (Chest)
+    const chestH = isLying ? 0.26 : 0.52;
+    const chest = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.38, 0.32), furMat);
+    chest.position.set(0, chestH, 0.22);
+    chest.castShadow = true;
+    dog.add(chest);
+
+    // 頸部 (Neck)
+    const neckH = isLying ? 0.38 : 0.68;
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.17, 0.26, 8), furMat);
+    neck.position.set(0, neckH, 0.32);
+    neck.rotation.x = isLying ? 0.22 : 0.35;
+    neck.castShadow = true;
+    dog.add(neck);
+
+    // 紅色項圈與金色名牌 (Collar & Tag)
+    const collarH = isLying ? 0.35 : 0.65;
+    const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.155, 0.165, 0.06, 10), collarMat);
+    collar.position.set(0, collarH, 0.31);
+    collar.rotation.x = isLying ? 0.22 : 0.35;
+    const bell = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), bellMat);
+    bell.position.set(0, collarH - 0.07, 0.41);
+    dog.add(collar, bell);
+
+    // 頭部組件 (Head Group)
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, isLying ? 0.52 : 0.82, 0.38);
+
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.24, 0.26), furMat);
+    head.castShadow = true;
+    headGroup.add(head);
+
+    // 口鼻部與黑鼻子 (Snout & Nose)
+    const snout = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.14, 0.22), furMat);
+    snout.position.set(0, -0.04, 0.22);
+    snout.castShadow = true;
+    const nose = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.06, 0.04), noseMat);
+    nose.position.set(0, 0.02, 0.33);
+    headGroup.add(snout, nose);
+
+    // 雙眼 (Eyes)
+    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.025, 6, 6), eyeMat);
+    eyeL.position.set(-0.09, 0.05, 0.14);
+    const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.025, 6, 6), eyeMat);
+    eyeR.position.set(0.09, 0.05, 0.14);
+    headGroup.add(eyeL, eyeR);
+
+    // 臺灣高砂犬標誌性直立尖耳 (Pricked Ears)
+    const earGeo = new THREE.ConeGeometry(0.06, 0.18, 4);
+    const earL = new THREE.Mesh(earGeo, furMat);
+    earL.position.set(-0.11, 0.18, -0.02);
+    earL.rotation.set(-0.1, 0, -0.25);
+    const earR = new THREE.Mesh(earGeo, furMat);
+    earR.position.set(0.11, 0.18, -0.02);
+    earR.rotation.set(-0.1, 0, 0.25);
+    headGroup.add(earL, earR);
+
+    dog.add(headGroup);
+
+    // 四肢 (Legs)
+    if (isLying) {
+      // 趴姿四肢微曲
+      const pawGeo = new THREE.BoxGeometry(0.12, 0.10, 0.24);
+      [[-0.18, 0.05, 0.28], [0.18, 0.05, 0.28], [-0.20, 0.05, -0.22], [0.20, 0.05, -0.22]].forEach(([lx, ly, lz]) => {
+        const paw = new THREE.Mesh(pawGeo, furMat);
+        paw.position.set(lx, ly, lz);
+        paw.castShadow = true;
+        dog.add(paw);
+      });
+    } else {
+      // 站立四肢
+      const legGeo = new THREE.CylinderGeometry(0.045, 0.04, 0.42, 6);
+      const pawGeo = new THREE.BoxGeometry(0.09, 0.06, 0.12);
+      [
+        [-0.12, 0.21, 0.24],
+        [0.12, 0.21, 0.24],
+        [-0.12, 0.21, -0.24],
+        [0.12, 0.21, -0.24]
+      ].forEach(([lx, ly, lz]) => {
+        const leg = new THREE.Mesh(legGeo, furMat);
+        leg.position.set(lx, ly, lz);
+        leg.castShadow = true;
+        const paw = new THREE.Mesh(pawGeo, furMat);
+        paw.position.set(lx, 0.03, lz + 0.02);
+        dog.add(leg, paw);
+      });
+    }
+
+    // 臺灣犬特徵：經典向上捲曲之鐮刀尾 (Sickle Tail)
+    const tailGroup = new THREE.Group();
+    tailGroup.position.set(0, isLying ? 0.32 : 0.58, -0.34);
+    const tailSeg1 = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.045, 0.22, 6), furMat);
+    tailSeg1.position.set(0, 0.1, -0.06);
+    tailSeg1.rotation.x = -0.55;
+    const tailSeg2 = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.035, 0.20, 6), furMat);
+    tailSeg2.position.set(0, 0.22, -0.02);
+    tailSeg2.rotation.x = 0.65;
+    tailGroup.add(tailSeg1, tailSeg2);
+    dog.add(tailGroup);
+
+    return { group: dog, headGroup, tailGroup, name };
+  }
+
+  // 4 隻黑色校犬配置位置
+  const dogConfigs = [
+    { name: '小黑', px: 1040, py: 916, yaw: -0.75, isLying: false, intro: '校門口大門值勤警備隊長，每天守護同學平安上下學！' },
+    { name: '歐告', px: 1085, py: 760, yaw: 1.15, isLying: true, intro: '在中正園草坪享受溫暖陽光曬太陽，個性溫和親人！' },
+    { name: '黑皮', px: 785, py: 575, yaw: 0.32, isLying: false, intro: '大花圃老榕樹下的運動健將，最愛看排球與籃球比賽！' },
+    { name: '黑輪', px: 360, py: 125, yaw: -1.45, isLying: false, intro: '田徑場跑道巡查員，陪著體育班選手一同晨操熱身！' }
+  ];
+
+  dogConfigs.forEach((cfg) => {
+    const d = createDogMesh(cfg.name, cfg.isLying);
+    const wx = pxToWorldX(cfg.px);
+    const wz = pyToWorldZ(cfg.py);
+    d.group.position.set(wx, 0, wz);
+    d.group.rotation.y = cfg.yaw;
+    details3DGroup.add(d.group);
+
+    animatedAnimals.dogs.push({
+      ...d,
+      wx, wz,
+      seed: Math.random() * 100,
+      intro: cfg.intro
+    });
+
+    // 登錄實體碰撞體（人物不能穿過黑色小狗）
+    collisionCircles.push({
+      x: wx,
+      z: wz,
+      r: 0.58,
+      type: 'dog',
+      name: `校犬「${cfg.name}」`
+    });
+  });
+
+  // === 樹梢隨機分佈 18 隻臺灣特有種「臺灣藍鵲」===
+  const blackMat = new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.6 });
+  const royalBlueMat = new THREE.MeshStandardMaterial({ color: 0x195bb5, roughness: 0.38, metalness: 0.2 });
+  const redMat = new THREE.MeshStandardMaterial({ color: 0xd62828, roughness: 0.45 });
+  const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
+  const yellowEyeMat = new THREE.MeshBasicMaterial({ color: 0xf5cc28 });
+
+  function createMagpieMesh() {
+    const bird = new THREE.Group();
+
+    // 軀幹（耀眼琉璃藍背羽）
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 8), royalBlueMat);
+    body.scale.set(0.9, 0.95, 1.4);
+    body.castShadow = true;
+    bird.add(body);
+
+    // 胸部與頸部（黑羽頭套）
+    const breast = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), blackMat);
+    breast.position.set(0, 0.04, 0.11);
+    breast.scale.set(0.85, 0.95, 0.9);
+    bird.add(breast);
+
+    // 頭部組件（黑頭）
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 0.12, 0.18);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), blackMat);
+    head.castShadow = true;
+    headGroup.add(head);
+
+    // 珊瑚紅喙 (Coral Red Beak)
+    const beak = new THREE.Mesh(new THREE.ConeGeometry(0.032, 0.11, 6), redMat);
+    beak.position.set(0, -0.01, 0.12);
+    beak.rotation.x = Math.PI / 2;
+    beak.castShadow = true;
+    headGroup.add(beak);
+
+    // 黃色金眼
+    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.016, 6, 6), yellowEyeMat);
+    eyeL.position.set(-0.055, 0.025, 0.04);
+    const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.016, 6, 6), yellowEyeMat);
+    eyeR.position.set(0.055, 0.025, 0.04);
+    headGroup.add(eyeL, eyeR);
+
+    bird.add(headGroup);
+
+    // 雙翼（折合藍黑雙翼）
+    const wingGeo = new THREE.BoxGeometry(0.04, 0.12, 0.32);
+    const wingL = new THREE.Mesh(wingGeo, royalBlueMat);
+    wingL.position.set(-0.12, 0.02, -0.06);
+    wingL.rotation.set(-0.18, 0.08, 0.15);
+    const wingR = new THREE.Mesh(wingGeo, royalBlueMat);
+    wingR.position.set(0.12, 0.02, -0.06);
+    wingR.rotation.set(-0.18, -0.08, -0.15);
+    bird.add(wingL, wingR);
+
+    // 鮮紅雙爪 (Red Legs)
+    const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.10, 5), redMat);
+    legL.position.set(-0.05, -0.12, 0.03);
+    const legR = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.10, 5), redMat);
+    legR.position.set(0.05, -0.12, 0.03);
+    bird.add(legL, legR);
+
+    // 標誌性階梯狀超長黑白斑紋尾羽 (Stepped Long Tail)
+    const tailGroup = new THREE.Group();
+    tailGroup.position.set(0, 0.02, -0.16);
+
+    const tailMain = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.012, 0.44), royalBlueMat);
+    tailMain.position.set(0, -0.08, -0.22);
+    tailMain.rotation.x = 0.38;
+
+    const tailBand = new THREE.Mesh(new THREE.BoxGeometry(0.056, 0.013, 0.06), blackMat);
+    tailBand.position.set(0, -0.155, -0.40);
+    tailBand.rotation.x = 0.38;
+
+    const tailTip = new THREE.Mesh(new THREE.BoxGeometry(0.054, 0.013, 0.08), whiteMat);
+    tailTip.position.set(0, -0.185, -0.46);
+    tailTip.rotation.x = 0.38;
+
+    tailGroup.add(tailMain, tailBand, tailTip);
+    bird.add(tailGroup);
+
+    return { group: bird, headGroup, tailGroup };
+  }
+
+  // 從全校樹木中精選 18 處樹冠隨機棲息
+  const treeList = (window.CAMPUS_TREES && window.CAMPUS_TREES.trees) || [];
+  const candidateTrees = treeList.filter(([px, py]) => {
+    // 集中在大花圃老榕樹、活動中心東南草坪、田徑場西側綠帶、生態池林帶與中庭花園
+    const inBanyan = (px >= 600 && px <= 850 && py >= 520 && py <= 620);
+    const inLawn = (px >= 1150 && px <= 1320 && py >= 670 && py <= 830);
+    const inTrack = (px >= 150 && px <= 750 && py >= 75 && py <= 125);
+    const inEco = (px >= 620 && px <= 750 && py >= 700 && py <= 800);
+    return inBanyan || inLawn || inTrack || inEco;
+  });
+
+  const step = Math.max(1, Math.floor(candidateTrees.length / 18));
+  for (let bi = 0; bi < candidateTrees.length && animatedAnimals.magpies.length < 18; bi += step) {
+    const [tpx, tpy, tr, tone] = candidateTrees[bi];
+    const m = createMagpieMesh();
+    const wx = pxToWorldX(tpx) + (treeRand(tpx, tpy, 11) - 0.5) * (tr * SCALE * 0.7);
+    const wz = pyToWorldZ(tpy) + (treeRand(tpx, tpy, 12) - 0.5) * (tr * SCALE * 0.7);
+    // 樹高換算公尺，鳥兒棲於樹梢上層
+    const treeCrownR = Math.max(1.1, Math.min(6, tr * SCALE));
+    const treeTrunkH = treeCrownR * (1.1 + treeRand(tpx, tpy, 1) * 0.35) + 0.6;
+    const treeCrownH = treeCrownR * (0.95 + treeRand(tpx, tpy, 2) * 0.2);
+    const birdY = treeTrunkH + treeCrownH * 0.75;
+
+    m.group.position.set(wx, birdY, wz);
+    m.group.rotation.y = treeRand(tpx, tpy, 13) * Math.PI * 2;
+    details3DGroup.add(m.group);
+
+    animatedAnimals.magpies.push({
+      ...m,
+      wx, wz,
+      seed: Math.random() * 100
+    });
+  }
 }
 
 function buildColorfulFlowerBeds() {
@@ -4494,7 +4776,13 @@ function animate(now) {
           if (!checkBuildingCollision(nx, state.fpv.pos.z)) state.fpv.pos.x = nx;
           else if (!checkBuildingCollision(state.fpv.pos.x, nz)) state.fpv.pos.z = nz;
           if (now - lastCollisionToast > 2200) {
-            showToast(`碰撞阻擋：${hit.name}`);
+            if (hit.type === 'dog') {
+              const dogObj = animatedAnimals.dogs.find(d => `校犬「${d.name}」` === hit.name);
+              const intro = dogObj ? `：${dogObj.intro}` : '：汪！';
+              showToast(`🐾 ${hit.name}${intro}`);
+            } else {
+              showToast(`碰撞阻擋：${hit.name}`);
+            }
             lastCollisionToast = now;
           }
         }
@@ -4503,6 +4791,17 @@ function animate(now) {
       }
     }
   }
+
+  // 校犬尾巴輕搖與頭部微動
+  animatedAnimals.dogs.forEach((d) => {
+    d.tailGroup.rotation.z = Math.sin(now * 0.007 + d.seed) * 0.35;
+    d.headGroup.rotation.y = Math.sin(now * 0.002 + d.seed) * 0.16;
+  });
+  // 樹梢隨機臺灣藍鵲之擺尾與轉頭動作
+  animatedAnimals.magpies.forEach((b) => {
+    b.tailGroup.rotation.x = 0.38 + Math.sin(now * 0.0035 + b.seed) * 0.14;
+    b.headGroup.rotation.y = Math.sin(now * 0.0018 + b.seed) * 0.32;
+  });
 
   animateStudentAvatar(now, avatarMoving);
   renderer.render(scene, camera);
@@ -4558,6 +4857,24 @@ function handleTestHash() {
     camera.updateProjectionMatrix();
     camera.position.set(pxToWorldX(995), 16, pyToWorldZ(1005));
     controls.target.set(pxToWorldX(1054), 5.5, pyToWorldZ(892));
+    state.cameraTween = null;
+    controls.update();
+  } else if (h === '#test=lawn') {
+    // 俯瞰活動中心東南草坪（紅色框框植栽區）與中正園、警衛室
+    document.getElementById('right-panel')?.classList.add('collapsed');
+    camera.fov = 48;
+    camera.updateProjectionMatrix();
+    camera.position.set(pxToWorldX(930), 82, pyToWorldZ(1050));
+    controls.target.set(pxToWorldX(1120), 4, pyToWorldZ(720));
+    state.cameraTween = null;
+    controls.update();
+  } else if (h === '#test=dog') {
+    // 校犬「小黑」與校門口警衛室特寫
+    document.getElementById('right-panel')?.classList.add('collapsed');
+    camera.fov = 38;
+    camera.updateProjectionMatrix();
+    camera.position.set(pxToWorldX(1032), 2.2, pyToWorldZ(928));
+    controls.target.set(pxToWorldX(1040), 0.55, pyToWorldZ(916));
     state.cameraTween = null;
     controls.update();
   } else if (h === '#test=banyan') {
