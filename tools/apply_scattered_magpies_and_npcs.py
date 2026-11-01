@@ -701,3 +701,4 @@ if re.search(pattern, content):
     print("[SUCCESS] Successfully updated js/app.js with scattered magpies on trees and scattered NPCs!")
 else:
     print("[ERROR] Pattern not found!")
+
