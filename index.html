@@ -5739,10 +5739,10 @@ function buildGateAndEastPlazaDetails() {
     details3DGroup.add(shrub);
   });
 
-  // 4. 【現代幾何太極大石雕】本體（依實拍照片 2、3、4 精準還原）：
-  // 座落於中正園花台西南前緣開闊灰石板廣場，後面為圓形花台與台灣欒樹
-  const scX = islandX - 6.5;
-  const scZ = islandZ + 7.5;
+  // 4. 【現代幾何太極大石雕】本體（依實拍照片與使用者指示校正至東南南側藍框位置）：
+  // 座落於中正園花台東南南前緣開闊灰石板廣場（緊鄰藍框處）
+  const scX = islandX + 5.0;
+  const scZ = islandZ + 7.2;
 
   // 4a. 雙層長方形臺座（下層水泥紅磚底、上層黑大理石圍邊、內部純白碎石床）
   const basePlinthMat = new THREE.MeshStandardMaterial({ color: 0x82776d, roughness: 0.85 });
@@ -5767,7 +5767,7 @@ function buildGateAndEastPlazaDetails() {
   whiteBed.receiveShadow = true;
   details3DGroup.add(whiteBed);
 
-  // 4b. 深墨綠色幾何現代太極雕塑主體（深墨綠色花崗岩質感，斜切厚重塊面互鎖，依照片 3 特寫）
+  // 4b. 深墨綠色幾何現代太極雕塑主體（深墨綠色花崗岩質感，斜切厚重塊面互鎖）
   const sculptureMat = new THREE.MeshStandardMaterial({
     color: 0x20352e,
     roughness: 0.36,
@@ -5775,7 +5775,7 @@ function buildGateAndEastPlazaDetails() {
   });
   const scGroup = new THREE.Group();
   scGroup.position.set(scX, 0.48, scZ);
-  scGroup.rotation.y = -0.36; // 正對校門與迎賓車道視角
+  scGroup.rotation.y = 0.22; // 迎向校門與迎賓車道大門迎賓視角
 
   // 塊體 1：下部大斜跨支撐厚塊（大蹲姿發力體量，左低右高斜向跨撐）
   const legBlock = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.1, 1.35), sculptureMat);
@@ -5869,20 +5869,36 @@ function buildGateAndEastPlazaDetails() {
   signBar.rotation.y = -0.18;
   details3DGroup.add(signBar);
 
-  // 7. 至聖樓側翼洗石子矮駁坎與修剪整齊金露花綠籬（照片 1、5 左側）
+  // 7. 依使用者指示校正：修剪整齊之金露花綠籬與矮駁坎由至聖樓側翼移至中正樓正面迎賓走廊（藍框位置 px: 972, py: 540..735）
   const curbWallMat = new THREE.MeshStandardMaterial({ color: 0x948f87, roughness: 0.85 });
   const goldenHedgeMat = new THREE.MeshStandardMaterial({ color: 0x8cb836, roughness: 0.8 });
+  const hedgeShadeMat = new THREE.MeshStandardMaterial({ color: 0x2e5224, roughness: 0.88 });
 
-  const hedgeWall = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.42, 32.0), curbWallMat);
-  hedgeWall.position.set(pxToWorldX(972), 0.35, pyToWorldZ(790));
+  const hedgeLen = (735 - 540) * SCALE; // 52.65 m
+  const hedgeZ = pyToWorldZ((540 + 735) / 2); // py: 637.5
+
+  const hedgeWall = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.42, hedgeLen), curbWallMat);
+  hedgeWall.position.set(pxToWorldX(972), 0.35, hedgeZ);
   hedgeWall.receiveShadow = true;
   hedgeWall.castShadow = true;
   details3DGroup.add(hedgeWall);
 
-  const goldenHedge = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.52, 31.6), goldenHedgeMat);
-  goldenHedge.position.set(pxToWorldX(972), 0.78, pyToWorldZ(790));
+  const goldenHedge = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.52, hedgeLen - 0.4), goldenHedgeMat);
+  goldenHedge.position.set(pxToWorldX(972), 0.78, hedgeZ);
   goldenHedge.castShadow = true;
   details3DGroup.add(goldenHedge);
+
+  // 綠籬上每隔約 4.8m 點綴修剪整齊之深綠圓球灌木
+  const hedgeBushesCount = 11;
+  const bushSpacing = hedgeLen / (hedgeBushesCount - 1);
+  for (let bIdx = 0; bIdx < hedgeBushesCount; bIdx++) {
+    const bZ = hedgeZ - hedgeLen / 2 + bIdx * bushSpacing;
+    const bush = new THREE.Mesh(new THREE.SphereGeometry(0.55, 12, 10), hedgeShadeMat);
+    bush.scale.set(1.0, 0.8, 1.0);
+    bush.position.set(pxToWorldX(972), 1.15, bZ);
+    bush.castShadow = true;
+    details3DGroup.add(bush);
+  }
 
   // C. 教職員斜向停車場（整齊分佈於中正樓正面迎賓廣場 px: 1018..1078, py: 540..745）
   // 依照片 1 特寫：第一位停放深邃金屬黑轎車（AKZ-1355 Honda Civic）、第二位極光銀轎車
@@ -6106,14 +6122,27 @@ function buildGateAndEastPlazaDetails() {
   palmFloor.receiveShadow = true;
   details3DGroup.add(palmFloor);
 
-  // 天井中央獨立樓梯塔樓
+  // 依使用者指示校正：1~5層獨立樓梯/電梯塔樓由中庭中央移至北側中美西廊道相連處（藍圈位置 px: 864, py: 618）
+  const towerZ = pyToWorldZ(618);
+  const towerH = 18.0; // 1~5層完整樓高（5 * 3.6m = 18m）
   const stairTower = new THREE.Mesh(
-    new THREE.BoxGeometry(5.4, 12.0, 6.8),
+    new THREE.BoxGeometry(6.4, towerH, 6.8),
     new THREE.MeshStandardMaterial({ color: 0xdedbd4, roughness: 0.8 })
   );
-  stairTower.position.set(palmGardenCx, 6.0, palmGardenCz);
+  stairTower.position.set(palmGardenCx, towerH / 2, towerZ);
   stairTower.castShadow = true;
+  stairTower.receiveShadow = true;
   details3DGroup.add(stairTower);
+
+  // 樓梯塔樓頂部女兒牆與電梯機房屋突（Penthouse）
+  const towerRoofY = towerH;
+  const towerPh = new THREE.Mesh(
+    new THREE.BoxGeometry(4.2, 2.2, 4.4),
+    new THREE.MeshStandardMaterial({ color: 0xc8c6be, roughness: 0.8 })
+  );
+  towerPh.position.set(palmGardenCx, towerRoofY + 1.1, towerZ);
+  towerPh.castShadow = true;
+  details3DGroup.add(towerPh);
 
   // 5 棵挺拔高聳的大王椰子樹
   const palmTrunkMat = new THREE.MeshStandardMaterial({ color: 0xd2cdc4, roughness: 0.75 });
@@ -10308,22 +10337,23 @@ function handleTestHash() {
     state.cameraTween = null;
     controls.update();
   } else if (h === '#test=garden') {
-    // 依實拍照片 (media_1793575277815~824) 警衛室往中正園現代幾何太極石雕與台灣欒樹景觀島特寫視角
+    // 依實拍照片警衛室往中正園現代幾何太極石雕（東南側新位）特寫視角
     document.getElementById('right-panel')?.classList.add('collapsed');
     camera.fov = 42;
     camera.updateProjectionMatrix();
-    const scCenter = new THREE.Vector3(pxToWorldX(1048) - 6.5, 1.6, pyToWorldZ(765) + 7.5);
-    camera.position.set(scCenter.x - 14, 4.2, scCenter.z + 16);
+    const scCenter = new THREE.Vector3(pxToWorldX(1048) + 5.0, 1.6, pyToWorldZ(765) + 7.2);
+    camera.position.set(scCenter.x - 12, 4.2, scCenter.z + 16);
     controls.target.copy(scCenter);
     state.cameraTween = null;
     controls.update();
-  } else if (h === '#test=garden_compare') {
-    // 依使用者標註圖角度 (media_1793576202260_c1f9d065.jpg)：俯瞰中正園裝置藝術區與藍色標籤區塊靠近對齊視角
+  } else if (h === '#test=garden_compare' || h === '#test=three_changes') {
+    // 依使用者三處紅圈藍框標註圖視角 (media_1793578827639_8b37a8d8.jpg)：
+    // 自南向北高角度俯瞰：1~5層中庭塔樓北移、中正樓正面長綠籬、太極裝置移至東南側藍框
     document.getElementById('right-panel')?.classList.add('collapsed');
-    camera.fov = 45;
+    camera.fov = 48;
     camera.updateProjectionMatrix();
-    camera.position.set(pxToWorldX(975), 34, pyToWorldZ(870));
-    controls.target.set(pxToWorldX(1048), 1.5, pyToWorldZ(765));
+    camera.position.set(pxToWorldX(940), 118, pyToWorldZ(940));
+    controls.target.set(pxToWorldX(940), 2.0, pyToWorldZ(685));
     state.cameraTween = null;
     controls.update();
   } else if (h === '#test=gate') {
