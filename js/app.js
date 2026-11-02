@@ -1382,7 +1382,8 @@ function buildGateAndEastPlazaDetails() {
   // 5. 迎賓車道黃黑相間橡膠減速坡（Speed Bump）與立式圓形「禁止進入」交通反光標誌
   // 6. 至聖樓側翼洗石子矮駁坎與修剪金露花綠籬
   const islandX = pxToWorldX(1048);
-  const islandZ = pyToWorldZ(815);
+  // 依使用者指示校正：中正園圓形景觀島與裝置藝術雕像整體北移，緊密對齊「中正園與裝置藝術區」標籤與綠帶（px: 1048, py: 765）
+  const islandZ = pyToWorldZ(765);
 
   // 1. 黃褐色板岩砌石花台矮牆（直徑約 17.2m，高約 0.65m）
   const stoneWallMat = new THREE.MeshStandardMaterial({ color: 0xba9b73, roughness: 0.88 });
@@ -1492,8 +1493,8 @@ function buildGateAndEastPlazaDetails() {
 
   // 4. 【現代幾何太極大石雕】本體（依實拍照片 2、3、4 精準還原）：
   // 座落於中正園花台西南前緣開闊灰石板廣場，後面為圓形花台與台灣欒樹
-  const scX = islandX - 6.8;
-  const scZ = islandZ + 9.2;
+  const scX = islandX - 6.5;
+  const scZ = islandZ + 7.5;
 
   // 4a. 雙層長方形臺座（下層水泥紅磚底、上層黑大理石圍邊、內部純白碎石床）
   const basePlinthMat = new THREE.MeshStandardMaterial({ color: 0x82776d, roughness: 0.85 });
@@ -1569,7 +1570,7 @@ function buildGateAndEastPlazaDetails() {
 
   // 5. 迎賓車道黃黑相間橡膠減速坡（Speed Bump，依照片 1、2 還原）
   const bumpX = pxToWorldX(996);
-  const bumpZ = pyToWorldZ(825);
+  const bumpZ = pyToWorldZ(775);
   const bumpGroup = new THREE.Group();
   bumpGroup.position.set(bumpX, 0.14, bumpZ);
   bumpGroup.rotation.y = 0.18;
@@ -6063,9 +6064,18 @@ function handleTestHash() {
     document.getElementById('right-panel')?.classList.add('collapsed');
     camera.fov = 42;
     camera.updateProjectionMatrix();
-    const scCenter = new THREE.Vector3(pxToWorldX(1048) - 6.8, 1.6, pyToWorldZ(815) + 9.2);
+    const scCenter = new THREE.Vector3(pxToWorldX(1048) - 6.5, 1.6, pyToWorldZ(765) + 7.5);
     camera.position.set(scCenter.x - 14, 4.2, scCenter.z + 16);
     controls.target.copy(scCenter);
+    state.cameraTween = null;
+    controls.update();
+  } else if (h === '#test=garden_compare') {
+    // 依使用者標註圖角度 (media_1793576202260_c1f9d065.jpg)：俯瞰中正園裝置藝術區與藍色標籤區塊靠近對齊視角
+    document.getElementById('right-panel')?.classList.add('collapsed');
+    camera.fov = 45;
+    camera.updateProjectionMatrix();
+    camera.position.set(pxToWorldX(975), 34, pyToWorldZ(870));
+    controls.target.set(pxToWorldX(1048), 1.5, pyToWorldZ(765));
     state.cameraTween = null;
     controls.update();
   } else if (h === '#test=gate') {
