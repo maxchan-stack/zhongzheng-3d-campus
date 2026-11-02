@@ -35,6 +35,7 @@ const animatedAnimals = {
 };
 
 let ferrisWheelAnim = null;
+let classroom214AuraAnim = null;
 
 const campusNpcs = {
   sports: [],
@@ -804,6 +805,9 @@ function buildCampus3DDetails() {
 
   // 1c. 400 公尺田徑場、排球場、籃球場運動學生群，以及校園主要幹道漫步之師生群
   buildCampusSportsAndWalkwayNPCs();
+
+  // 1d. 214 教室傳奇金色光暈與天降聖光 (Heavenly Sunbeam & Golden Aura)
+  buildClassroom214HeavenlyAura();
 
   // 2. 裝置藝術立體雕塑群 (嚴格對齊平面圖裝置藝術綠帶中心 px: 1048, py: 565..675)
   [565, 620, 675].forEach((py, idx) => {
@@ -3094,6 +3098,171 @@ function buildCampusSportsAndWalkwayNPCs() {
   });
 }
 
+// === 214 教室傳奇光芒：自天際傾瀉而下的金色神聖光柱 (Heavenly Sunbeam)、金黃能量光暈 (Golden Aura) 與飄浮星屑 ===
+function buildClassroom214HeavenlyAura() {
+  // 精準計算中正樓 5F 214 教室在 3D 場景中的世界座標
+  // 中正樓主量體 px: 896, py: 530, pw: 56, ph: 230，5F 214 教室中心約在 px: 924, py: 563.3
+  const c214X = pxToWorldX(924);
+  const c214Z = pyToWorldZ(563.3);
+  const c214BaseY = 14.4;    // 5F 樓地板
+  const c214CenterY = 16.2;  // 5F 教室室內中心
+  const c214RoofY = 18.25;   // 5F 屋頂面
+
+  const auraRoot = new THREE.Group();
+  auraRoot.name = 'CLASSROOM_214_AURA';
+
+  // 1. 金色天降神聖光柱 (Heavenly Sunbeam / God Ray)
+  // 天空起點：Y = 175m，自東南天穹高處傾瀉而下，直達 214 教室屋頂
+  const skyOrigin = new THREE.Vector3(c214X + 22.0, 175.0, c214Z + 18.0);
+  const targetPoint = new THREE.Vector3(c214X, c214RoofY, c214Z);
+  const beamVec = new THREE.Vector3().subVectors(targetPoint, skyOrigin);
+  const beamLength = beamVec.length();
+  const beamMid = new THREE.Vector3().addVectors(skyOrigin, targetPoint).multiplyScalar(0.5);
+  const beamDir = beamVec.clone().normalize();
+
+  // 漸變光束專屬紋理 (縱向漸變：天際柔和穿雲 -> 中段璀璨金光 -> 降落點極致強光)
+  const beamCanvas = document.createElement('canvas');
+  beamCanvas.width = 64;
+  beamCanvas.height = 512;
+  const bCtx = beamCanvas.getContext('2d');
+  const bGrad = bCtx.createLinearGradient(0, 0, 0, 512);
+  bGrad.addColorStop(0.0, 'rgba(255, 250, 210, 0.05)'); // 天頂穿雲微光
+  bGrad.addColorStop(0.12, 'rgba(255, 235, 120, 0.45)');
+  bGrad.addColorStop(0.55, 'rgba(255, 215, 60, 0.82)');  // 中段耀眼金色光束
+  bGrad.addColorStop(0.92, 'rgba(255, 240, 160, 0.98)'); // 降落點極致強光
+  bGrad.addColorStop(1.0, 'rgba(255, 255, 220, 0.55)');
+  bCtx.fillStyle = bGrad;
+  bCtx.fillRect(0, 0, 64, 512);
+
+  const beamTex = new THREE.CanvasTexture(beamCanvas);
+  beamTex.colorSpace = THREE.SRGBColorSpace;
+
+  // 1a. 雙層體積光圓錐光柱：外層擴散金光束 (Outer Beam)
+  const outerGeo = new THREE.CylinderGeometry(3.6, 12.8, beamLength, 32, 1, true);
+  const outerMat = new THREE.MeshBasicMaterial({
+    map: beamTex,
+    color: 0xffd54f,
+    transparent: true,
+    opacity: 0.65,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  });
+  const outerBeam = new THREE.Mesh(outerGeo, outerMat);
+  outerBeam.position.copy(beamMid);
+  outerBeam.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), beamDir);
+  auraRoot.add(outerBeam);
+
+  // 1b. 內層高亮核心光束 (Core High-intensity Beam)
+  const coreGeo = new THREE.CylinderGeometry(1.6, 6.2, beamLength, 32, 1, true);
+  const coreMat = new THREE.MeshBasicMaterial({
+    map: beamTex,
+    color: 0xfff9c4,
+    transparent: true,
+    opacity: 0.85,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  });
+  const coreBeam = new THREE.Mesh(coreGeo, coreMat);
+  coreBeam.position.copy(beamMid);
+  coreBeam.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), beamDir);
+  auraRoot.add(coreBeam);
+
+  // 2. 214 教室周圍立體金黃色光暈 (Golden Aura Sphere & Ground Ripple Rings)
+  // 2a. 教室發光金色光罩球體 (包裹著 5F 214 教室)
+  const sphereGeo = new THREE.SphereGeometry(5.6, 24, 18);
+  const sphereMat = new THREE.MeshBasicMaterial({
+    color: 0xffca28,
+    transparent: true,
+    opacity: 0.38,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  });
+  const auraSphere = new THREE.Mesh(sphereGeo, sphereMat);
+  auraSphere.position.set(c214X, c214CenterY + 0.6, c214Z);
+  auraRoot.add(auraSphere);
+
+  // 2b. 屋頂光陣漣漪雙環 (水平放置於屋頂)
+  const ringMat1 = new THREE.MeshBasicMaterial({
+    color: 0xffeb3b,
+    transparent: true,
+    opacity: 0.72,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  });
+  const ring1 = new THREE.Mesh(new THREE.RingGeometry(2.8, 3.8, 36), ringMat1);
+  ring1.rotation.x = -Math.PI / 2;
+  ring1.position.set(c214X, c214RoofY + 0.12, c214Z);
+  auraRoot.add(ring1);
+
+  const ringMat2 = new THREE.MeshBasicMaterial({
+    color: 0xffa000,
+    transparent: true,
+    opacity: 0.55,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  });
+  const ring2 = new THREE.Mesh(new THREE.RingGeometry(5.6, 7.2, 36), ringMat2);
+  ring2.rotation.x = -Math.PI / 2;
+  ring2.position.set(c214X, c214RoofY + 0.15, c214Z);
+  auraRoot.add(ring2);
+
+  // 2c. 動態金黃照亮點光源 (照亮中正樓 5F 女兒牆與屋頂周圍)
+  const auraLight = new THREE.PointLight(0xffd700, 4.5, 65, 1.2);
+  auraLight.position.set(c214X, c214RoofY + 3.0, c214Z);
+  auraRoot.add(auraLight);
+
+  // 3. 飄浮金黃星屑粒子 (Golden Stardust Particles)
+  const sparkles = [];
+  const sparkleCount = 38;
+  const sparkleMat = new THREE.MeshBasicMaterial({
+    color: 0xfff59d,
+    transparent: true,
+    opacity: 0.9,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  const sparkleGeo = new THREE.DodecahedronGeometry(0.24, 0);
+
+  for (let i = 0; i < sparkleCount; i++) {
+    const pMesh = new THREE.Mesh(sparkleGeo, sparkleMat);
+    const rad = 1.2 + Math.random() * 6.5;
+    const ang = Math.random() * Math.PI * 2;
+    const initY = c214RoofY + Math.random() * 38.0;
+    pMesh.position.set(c214X + Math.cos(ang) * rad, initY, c214Z + Math.sin(ang) * rad);
+    auraRoot.add(pMesh);
+    sparkles.push({
+      mesh: pMesh,
+      baseRadius: rad,
+      angle: ang,
+      speedY: 0.04 + Math.random() * 0.07,
+      rotSpeed: 0.02 + Math.random() * 0.04,
+      minY: c214RoofY,
+      maxY: c214RoofY + 45.0
+    });
+  }
+
+  details3DGroup.add(auraRoot);
+
+  // 4. 註冊全域動畫控制器
+  classroom214AuraAnim = {
+    outerBeam,
+    coreBeam,
+    auraSphere,
+    ring1,
+    ring2,
+    auraLight,
+    sparkles,
+    c214X,
+    c214Z,
+    c214RoofY
+  };
+}
+
 function buildColorfulFlowerBeds() {
   // 大花圃 (px: 552..794, py: 562..622) 與排球場旁花圃 (px: 800..872, py: 518..586)
   // 真實校園現況皆為茂密大榕樹群：建立石砌花台基座、深綠蔭下灌木地被、粗壯榕樹主幹與垂懸氣根（搭配 InstancedMesh 大榕樹冠）
@@ -4144,7 +4313,12 @@ function focusOnRoom(buildingId, floorKey, roomId) {
     const worldPos = targetMesh.position.clone();
     const camPos = worldPos.clone().add(new THREE.Vector3(18, 24, 28));
     animateCameraTo(camPos, worldPos);
-    showToast(`已定位：${bObj.data.name} ${floorKey} — ${targetMesh.userData.roomData.fullName || targetMesh.userData.roomData.name}`);
+    const roomName = targetMesh.userData.roomData.fullName || targetMesh.userData.roomData.name;
+    if (targetMesh.userData.roomData.name === '214') {
+      showToast('✨ 二年 14 班 (214 教室)：天降金色聖光與尊榮光暈，與眾不凡！');
+    } else {
+      showToast(`已定位：${bObj.data.name} ${floorKey} — ${roomName}`);
+    }
   }
 }
 
@@ -5747,6 +5921,33 @@ function animate(now) {
     });
   }
 
+  // 214 教室天降聖光與金色光暈動態呼吸迴圈
+  if (classroom214AuraAnim) {
+    const pulse1 = Math.sin(now * 0.0028);
+    const pulse2 = Math.sin(now * 0.0042);
+    // 天降光束呼吸明暗波動
+    classroom214AuraAnim.outerBeam.material.opacity = 0.55 + pulse1 * 0.18;
+    classroom214AuraAnim.coreBeam.material.opacity = 0.75 + pulse2 * 0.18;
+    // 214 教室光罩微動擴張
+    const sScale = 1.0 + pulse1 * 0.08;
+    classroom214AuraAnim.auraSphere.scale.set(sScale, sScale * 1.15, sScale);
+    classroom214AuraAnim.auraSphere.material.opacity = 0.32 + pulse2 * 0.12;
+    // 屋頂雙光環旋轉
+    classroom214AuraAnim.ring1.rotation.z = now * 0.0009;
+    classroom214AuraAnim.ring2.rotation.z = -now * 0.0006;
+    // 點光源跳動照耀中正樓 5F 女兒牆
+    classroom214AuraAnim.auraLight.intensity = 4.2 + pulse1 * 0.8;
+    // 金色星屑粒子緩步上升翻飛
+    classroom214AuraAnim.sparkles.forEach((sp) => {
+      sp.mesh.position.y += sp.speedY;
+      sp.mesh.rotation.x += sp.rotSpeed;
+      sp.mesh.rotation.y += sp.rotSpeed;
+      if (sp.mesh.position.y > sp.maxY) {
+        sp.mesh.position.y = sp.minY + Math.random() * 2.0;
+      }
+    });
+  }
+
   // 運動學生群（田徑奔跑、排球起跳與扣球、籃球跳投與運球）
   campusNpcs.sports.forEach((s) => {
     if (s.role === 'runner') {
@@ -5844,6 +6045,17 @@ function handleTestHash() {
     camera.updateProjectionMatrix();
     camera.position.set(pxToWorldX(1160), 38, pyToWorldZ(760));
     controls.target.set(pxToWorldX(915), 11, pyToWorldZ(750));
+    state.cameraTween = null;
+    controls.update();
+  } else if (h === '#test=214') {
+    // 214 教室天降金色聖光 (Heavenly Sunbeam) 與金黃光暈特寫視角
+    selectBuilding('zhongzheng', '5F', 'zz-507', false);
+    document.getElementById('right-panel')?.classList.add('collapsed');
+    camera.fov = 46;
+    camera.updateProjectionMatrix();
+    const c214Pos = new THREE.Vector3(pxToWorldX(924), 18.25, pyToWorldZ(563.3));
+    camera.position.set(c214Pos.x + 38, 38, c214Pos.z + 46);
+    controls.target.copy(c214Pos);
     state.cameraTween = null;
     controls.update();
   } else if (h === '#test=garden') {
