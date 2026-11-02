@@ -4253,6 +4253,31 @@ function renderRightPanel(bData, activeFloorKey, highlightRoomId) {
     return;
   }
 
+  // 若選中中正樓 5F 214 教室，在配置表面板上方最醒目處加入「學校行事曆」與排在其下方的「214 班 學生服務入口」
+  if (highlightRoomId === 'zz-507') {
+    const portalBox = document.createElement('div');
+    portalBox.style.cssText = 'margin: 0 0 14px; padding: 14px; background: linear-gradient(135deg, rgba(26,93,87,0.06) 0%, rgba(76,114,159,0.10) 100%); border: 1.5px solid #4c729f; border-radius: 12px;';
+    portalBox.innerHTML = `
+      <div style="font-weight: 700; color: #1a5d57; font-size: 0.95rem; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+        <span style="display: flex; align-items: center; gap: 6px;">🌟 214 教室專屬服務平台</span>
+        <span style="font-size: 0.72rem; color: #4c729f; background: rgba(76,114,159,0.12); padding: 2px 8px; border-radius: 10px; font-weight: 600;">學生與導師專區</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <!-- 學校行事曆 -->
+        <a href="https://maxchan-stack.github.io/bulletin-board-web/calendar.pdf" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #ffffff; border-radius: 8px; color: #7a59a0; text-decoration: none; font-weight: 600; font-size: 0.88rem; border: 1.5px solid #7a59a0; transition: all 0.2s ease;">
+          <span style="display: flex; align-items: center; gap: 6px;">📅 學校行事曆 (中正高中)</span>
+          <span style="font-size: 0.8rem; background: rgba(122,89,160,0.12); padding: 2px 8px; border-radius: 6px;">查閱 ↗</span>
+        </a>
+        <!-- 排在學校行事曆下方：214 班 學生服務入口 -->
+        <a href="https://maxchan-stack.github.io/bulletin-board-web/" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #4c729f; border-radius: 8px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 0.88rem; transition: all 0.2s ease;">
+          <span style="display: flex; align-items: center; gap: 6px;">🎓 214 班 學生服務入口</span>
+          <span style="font-size: 0.8rem; background: rgba(255,255,255,0.22); padding: 2px 8px; border-radius: 6px;">進入入口 ➔</span>
+        </a>
+      </div>
+    `;
+    containerEl.appendChild(portalBox);
+  }
+
   const wrapper = document.createElement('div');
   wrapper.className = 'config-table-wrapper';
 
@@ -6080,7 +6105,6 @@ function handleTestHash() {
   } else if (h === '#test=214') {
     // 214 教室天降金色聖光 (Heavenly Sunbeam) 與金黃光暈特寫視角
     selectBuilding('zhongzheng', '5F', 'zz-507', false);
-    document.getElementById('right-panel')?.classList.add('collapsed');
     camera.fov = 46;
     camera.updateProjectionMatrix();
     const c214Pos = new THREE.Vector3(pxToWorldX(924), 18.25, pyToWorldZ(563.3));
