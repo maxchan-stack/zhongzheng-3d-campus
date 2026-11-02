@@ -7369,30 +7369,30 @@ function buildClassroom214HeavenlyAura() {
   const beamMid = new THREE.Vector3().addVectors(skyOrigin, targetPoint).multiplyScalar(0.5);
   const beamDir = beamVec.clone().normalize();
 
-  // 漸變光束專屬紋理 (縱向漸變：天際柔和穿雲 -> 中段璀璨金光 -> 降落點極致強光)
+  // 漸變光束專屬紋理 (縱向漸變：極致柔和淡雅之丁達爾陽光灑落質感)
   const beamCanvas = document.createElement('canvas');
   beamCanvas.width = 64;
   beamCanvas.height = 512;
   const bCtx = beamCanvas.getContext('2d');
   const bGrad = bCtx.createLinearGradient(0, 0, 0, 512);
-  bGrad.addColorStop(0.0, 'rgba(255, 250, 210, 0.05)'); // 天頂穿雲微光
-  bGrad.addColorStop(0.12, 'rgba(255, 235, 120, 0.45)');
-  bGrad.addColorStop(0.55, 'rgba(255, 215, 60, 0.82)');  // 中段耀眼金色光束
-  bGrad.addColorStop(0.92, 'rgba(255, 240, 160, 0.98)'); // 降落點極致強光
-  bGrad.addColorStop(1.0, 'rgba(255, 255, 220, 0.55)');
+  bGrad.addColorStop(0.0, 'rgba(255, 248, 215, 0.0)');  // 天頂極淡微光
+  bGrad.addColorStop(0.18, 'rgba(255, 238, 160, 0.06)'); // 輕柔半透明雲光
+  bGrad.addColorStop(0.62, 'rgba(255, 225, 120, 0.16)'); // 中段淡淡溫暖金光
+  bGrad.addColorStop(0.92, 'rgba(255, 235, 150, 0.24)'); // 降落點柔和光暈
+  bGrad.addColorStop(1.0, 'rgba(255, 245, 190, 0.05)');
   bCtx.fillStyle = bGrad;
   bCtx.fillRect(0, 0, 64, 512);
 
   const beamTex = new THREE.CanvasTexture(beamCanvas);
   beamTex.colorSpace = THREE.SRGBColorSpace;
 
-  // 1a. 雙層體積光圓錐光柱：外層擴散金光束 (Outer Beam)
-  const outerGeo = new THREE.CylinderGeometry(3.6, 12.8, beamLength, 32, 1, true);
+  // 1a. 雙層體積光圓錐光柱：外層擴散淡金光束 (Outer Beam)
+  const outerGeo = new THREE.CylinderGeometry(3.2, 11.2, beamLength, 32, 1, true);
   const outerMat = new THREE.MeshBasicMaterial({
     map: beamTex,
-    color: 0xffd54f,
+    color: 0xffe082,
     transparent: true,
-    opacity: 0.65,
+    opacity: 0.16,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
     side: THREE.DoubleSide
@@ -7402,13 +7402,13 @@ function buildClassroom214HeavenlyAura() {
   outerBeam.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), beamDir);
   auraRoot.add(outerBeam);
 
-  // 1b. 內層高亮核心光束 (Core High-intensity Beam)
-  const coreGeo = new THREE.CylinderGeometry(1.6, 6.2, beamLength, 32, 1, true);
+  // 1b. 內層柔和核心光束 (Core Gentle Sunbeam)
+  const coreGeo = new THREE.CylinderGeometry(1.4, 5.2, beamLength, 32, 1, true);
   const coreMat = new THREE.MeshBasicMaterial({
     map: beamTex,
-    color: 0xfff9c4,
+    color: 0xfff3b0,
     transparent: true,
-    opacity: 0.85,
+    opacity: 0.22,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
     side: THREE.DoubleSide
@@ -7418,13 +7418,13 @@ function buildClassroom214HeavenlyAura() {
   coreBeam.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), beamDir);
   auraRoot.add(coreBeam);
 
-  // 2. 214 教室周圍立體金黃色光暈 (Golden Aura Sphere & Ground Ripple Rings)
-  // 2a. 教室發光金色光罩球體 (包裹著 5F 214 教室)
-  const sphereGeo = new THREE.SphereGeometry(5.6, 24, 18);
+  // 2. 214 教室周圍立體金黃色柔和光暈 (Soft Golden Aura Sphere & Subtle Rings)
+  // 2a. 教室發光淡金色光罩球體 (包裹著 5F 214 教室，清透不遮蔽建物)
+  const sphereGeo = new THREE.SphereGeometry(5.2, 24, 18);
   const sphereMat = new THREE.MeshBasicMaterial({
     color: 0xffca28,
     transparent: true,
-    opacity: 0.38,
+    opacity: 0.09,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
     side: THREE.DoubleSide
@@ -7433,49 +7433,49 @@ function buildClassroom214HeavenlyAura() {
   auraSphere.position.set(c214X, c214CenterY + 0.6, c214Z);
   auraRoot.add(auraSphere);
 
-  // 2b. 屋頂光陣漣漪雙環 (水平放置於屋頂)
+  // 2b. 屋頂柔和光暈雙環 (淡雅光圈)
   const ringMat1 = new THREE.MeshBasicMaterial({
     color: 0xffeb3b,
     transparent: true,
-    opacity: 0.72,
+    opacity: 0.20,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
     side: THREE.DoubleSide
   });
-  const ring1 = new THREE.Mesh(new THREE.RingGeometry(2.8, 3.8, 36), ringMat1);
+  const ring1 = new THREE.Mesh(new THREE.RingGeometry(2.6, 3.4, 36), ringMat1);
   ring1.rotation.x = -Math.PI / 2;
   ring1.position.set(c214X, c214RoofY + 0.12, c214Z);
   auraRoot.add(ring1);
 
   const ringMat2 = new THREE.MeshBasicMaterial({
-    color: 0xffa000,
+    color: 0xffb300,
     transparent: true,
-    opacity: 0.55,
+    opacity: 0.14,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
     side: THREE.DoubleSide
   });
-  const ring2 = new THREE.Mesh(new THREE.RingGeometry(5.6, 7.2, 36), ringMat2);
+  const ring2 = new THREE.Mesh(new THREE.RingGeometry(5.0, 6.2, 36), ringMat2);
   ring2.rotation.x = -Math.PI / 2;
   ring2.position.set(c214X, c214RoofY + 0.15, c214Z);
   auraRoot.add(ring2);
 
-  // 2c. 動態金黃照亮點光源 (照亮中正樓 5F 女兒牆與屋頂周圍)
-  const auraLight = new THREE.PointLight(0xffd700, 4.5, 65, 1.2);
-  auraLight.position.set(c214X, c214RoofY + 3.0, c214Z);
+  // 2c. 柔和金黃微醺點光源 (溫潤點綴中正樓 5F 女兒牆，不爆光)
+  const auraLight = new THREE.PointLight(0xffe082, 0.9, 24, 2.0);
+  auraLight.position.set(c214X, c214RoofY + 2.5, c214Z);
   auraRoot.add(auraLight);
 
-  // 3. 飄浮金黃星屑粒子 (Golden Stardust Particles)
+  // 3. 飄浮淡金星屑粒子 (Subtle Golden Stardust Particles)
   const sparkles = [];
-  const sparkleCount = 38;
+  const sparkleCount = 18;
   const sparkleMat = new THREE.MeshBasicMaterial({
-    color: 0xfff59d,
+    color: 0xfff9c4,
     transparent: true,
-    opacity: 0.9,
+    opacity: 0.45,
     blending: THREE.AdditiveBlending,
     depthWrite: false
   });
-  const sparkleGeo = new THREE.DodecahedronGeometry(0.24, 0);
+  const sparkleGeo = new THREE.DodecahedronGeometry(0.12, 0);
 
   for (let i = 0; i < sparkleCount; i++) {
     const pMesh = new THREE.Mesh(sparkleGeo, sparkleMat);
@@ -10170,22 +10170,22 @@ function animate(now) {
     });
   }
 
-  // 214 教室天降聖光與金色光暈動態呼吸迴圈
+  // 214 教室天降聖光與金色光暈動態呼吸迴圈（柔和淡雅）
   if (classroom214AuraAnim) {
-    const pulse1 = Math.sin(now * 0.0028);
-    const pulse2 = Math.sin(now * 0.0042);
-    // 天降光束呼吸明暗波動
-    classroom214AuraAnim.outerBeam.material.opacity = 0.55 + pulse1 * 0.18;
-    classroom214AuraAnim.coreBeam.material.opacity = 0.75 + pulse2 * 0.18;
-    // 214 教室光罩微動擴張
-    const sScale = 1.0 + pulse1 * 0.08;
-    classroom214AuraAnim.auraSphere.scale.set(sScale, sScale * 1.15, sScale);
-    classroom214AuraAnim.auraSphere.material.opacity = 0.32 + pulse2 * 0.12;
+    const pulse1 = Math.sin(now * 0.0018);
+    const pulse2 = Math.sin(now * 0.0025);
+    // 天降光束輕微柔和波動（淡淡的透明天光）
+    classroom214AuraAnim.outerBeam.material.opacity = 0.14 + pulse1 * 0.03;
+    classroom214AuraAnim.coreBeam.material.opacity = 0.20 + pulse2 * 0.04;
+    // 214 教室光罩微幅擴張（淡金透明）
+    const sScale = 1.0 + pulse1 * 0.03;
+    classroom214AuraAnim.auraSphere.scale.set(sScale, sScale * 1.05, sScale);
+    classroom214AuraAnim.auraSphere.material.opacity = 0.08 + pulse2 * 0.02;
     // 屋頂雙光環旋轉
-    classroom214AuraAnim.ring1.rotation.z = now * 0.0009;
-    classroom214AuraAnim.ring2.rotation.z = -now * 0.0006;
-    // 點光源跳動照耀中正樓 5F 女兒牆
-    classroom214AuraAnim.auraLight.intensity = 4.2 + pulse1 * 0.8;
+    classroom214AuraAnim.ring1.rotation.z = now * 0.0006;
+    classroom214AuraAnim.ring2.rotation.z = -now * 0.0004;
+    // 點光源輕撫照耀中正樓 5F 女兒牆（低強度溫和微光）
+    classroom214AuraAnim.auraLight.intensity = 0.85 + pulse1 * 0.15;
     // 金色星屑粒子緩步上升翻飛
     classroom214AuraAnim.sparkles.forEach((sp) => {
       sp.mesh.position.y += sp.speedY;
