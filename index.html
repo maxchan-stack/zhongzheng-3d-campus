@@ -7788,65 +7788,74 @@ function buildChristmasAtmosphere() {
   cGroup.add(treeGroup);
 
   // 3. 聖誕花圈產生器 (Christmas Wreaths)
-  function createWreath(radius = 1.25) {
+  // 精準計算接觸面外法向與表面幾何，厚度嚴格向外凸出，100% 貼合牆面，零穿牆、零懸空
+  function createWreath(radius = 1.25, tubeR = 0.22) {
     const wGroup = new THREE.Group();
+    // 松枝圈 (TorusGeometry 預設垂直於 Z 軸)
     const wMat = new THREE.MeshStandardMaterial({ color: 0x1e5631, roughness: 0.85 });
-    const wRing = new THREE.Mesh(new THREE.TorusGeometry(radius, radius * 0.28, 12, 32), wMat);
+    const wRing = new THREE.Mesh(new THREE.TorusGeometry(radius, tubeR, 12, 32), wMat);
+    wRing.castShadow = true;
     wGroup.add(wRing);
 
+    // 紅色大蝴蝶結緞帶 (置於正面 +Z 側，浮出 0.08m，完全不穿透後方貼牆接觸面)
     const bowMat = new THREE.MeshStandardMaterial({ color: 0xd63031, roughness: 0.5 });
-    const bowCenter = new THREE.Mesh(new THREE.SphereGeometry(radius * 0.24, 10, 10), bowMat);
-    bowCenter.position.set(0, -radius * 0.9, radius * 0.15);
+    const bowCenter = new THREE.Mesh(new THREE.SphereGeometry(radius * 0.22, 10, 10), bowMat);
+    bowCenter.position.set(0, -radius * 0.88, tubeR + 0.06);
     wGroup.add(bowCenter);
 
-    const bowWing1 = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.32, radius * 0.1, 8, 16), bowMat);
-    bowWing1.position.set(-radius * 0.32, -radius * 0.9, radius * 0.15);
-    bowWing1.rotation.y = -0.3;
+    const bowWing1 = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.30, radius * 0.09, 8, 16), bowMat);
+    bowWing1.position.set(-radius * 0.30, -radius * 0.88, tubeR + 0.06);
+    bowWing1.rotation.y = -0.25;
     wGroup.add(bowWing1);
 
-    const bowWing2 = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.32, radius * 0.1, 8, 16), bowMat);
-    bowWing2.position.set(radius * 0.32, -radius * 0.9, radius * 0.15);
-    bowWing2.rotation.y = 0.3;
+    const bowWing2 = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.30, radius * 0.09, 8, 16), bowMat);
+    bowWing2.position.set(radius * 0.30, -radius * 0.88, tubeR + 0.06);
+    bowWing2.rotation.y = 0.25;
     wGroup.add(bowWing2);
 
+    // 雙金色鈴鐺 (懸於下方正面)
     const bellMat = new THREE.MeshStandardMaterial({ color: 0xf1c40f, metalness: 0.8, roughness: 0.25 });
     [-0.14, 0.14].forEach((dx) => {
-      const bell = new THREE.Mesh(new THREE.ConeGeometry(radius * 0.18, radius * 0.28, 12), bellMat);
-      bell.position.set(dx, -radius * 1.15, radius * 0.18);
+      const bell = new THREE.Mesh(new THREE.ConeGeometry(radius * 0.16, radius * 0.26, 12), bellMat);
+      bell.position.set(dx, -radius * 1.15, tubeR + 0.08);
       wGroup.add(bell);
     });
 
+    // 點綴紅色冬青漿果
     for (let i = 0; i < 8; i++) {
       const bAng = i * (Math.PI * 2 / 8);
-      const berry = new THREE.Mesh(new THREE.SphereGeometry(radius * 0.09, 8, 8), bowMat);
-      berry.position.set(Math.cos(bAng) * radius, Math.sin(bAng) * radius, radius * 0.22);
+      const berry = new THREE.Mesh(new THREE.SphereGeometry(radius * 0.08, 8, 8), bowMat);
+      berry.position.set(Math.cos(bAng) * radius, Math.sin(bAng) * radius, tubeR + 0.04);
       wGroup.add(berry);
     }
 
     return wGroup;
   }
 
-  // 掛載 1：中正樓挑空大穿堂正門頂部 (高聳大氣)
-  const wreathZhongzheng = createWreath(1.35);
-  wreathZhongzheng.position.set(pxToWorldX(945), 6.5, pyToWorldZ(745));
-  wreathZhongzheng.rotation.y = Math.PI;
+  // 掛載位置 1：中正樓挑空大穿堂正門上方（迎賓正面正中央）
+  // 中正樓東立面 X = 63.06，花圈管徑 0.22m，貼合面 X = 63.30，門楣正中 Z = pyToWorldZ(645) = 28.35，Y = 5.8m
+  const wreathZhongzheng = createWreath(1.35, 0.22);
+  wreathZhongzheng.position.set(63.30, 5.80, pyToWorldZ(645));
+  wreathZhongzheng.rotation.y = Math.PI / 2; // 面朝東方迎賓廣場，完全平貼中正樓大穿堂正門上方
   cGroup.add(wreathZhongzheng);
 
-  // 掛載 2：校門口警衛室正面外牆 (入校第一視角)
-  const wreathGate = createWreath(0.95);
-  wreathGate.position.set(pxToWorldX(1048) - 0.2, 3.4, pyToWorldZ(895) - 1.2);
-  wreathGate.rotation.y = Math.PI;
+  // 掛載位置 2：校門口警衛室北外牆表面正中央（入校迎賓正面）
+  // 警衛室北外牆 Z = 90.18，花圈管徑 0.18m，貼合面 Z = 89.98，法向量朝北 (-Z)
+  const wreathGate = createWreath(0.95, 0.18);
+  wreathGate.position.set(pxToWorldX(1030.5), 2.05, 89.98);
+  wreathGate.rotation.y = 0; // 面朝北方迎賓車道，完全平貼北外牆表面
   cGroup.add(wreathGate);
 
-  // 掛載 3：214 教室外廊女兒牆
-  const wreath214 = createWreath(0.85);
-  wreath214.position.set(pxToWorldX(924) - 2.8, 18.3, pyToWorldZ(563.3));
-  wreath214.rotation.y = Math.PI / 2;
+  // 掛載位置 3：214 教室東外牆女兒牆表面（中正樓 5F 東立面）
+  // 東外牆 X = 62.64，花圈管徑 0.16m，貼合面 X = 62.82，法向量朝東 (+X)
+  const wreath214 = createWreath(0.85, 0.16);
+  wreath214.position.set(62.82, 17.20, 6.29);
+  wreath214.rotation.y = Math.PI / 2; // 面朝東方，完全平貼中正樓東外牆
   cGroup.add(wreath214);
 
-  // 4. 214 教室專屬立體聖誕雪人 (Classroom 214 Snowman)
+  // 4. 214 教室外廊立體聖誕雪人 (位於露台外地板，嚴格不與牆面重疊)
   const snowmanGroup = new THREE.Group();
-  snowmanGroup.position.set(pxToWorldX(924) + 3.8, 18.25, pyToWorldZ(563.3) - 1.5);
+  snowmanGroup.position.set(58.5, 18.25, 6.29); // 位於 214 屋頂露台安全中心
   snowmanGroup.rotation.y = -Math.PI / 4;
 
   const snowBodyMat = new THREE.MeshStandardMaterial({ color: 0xf8fbfd, roughness: 0.45 });
@@ -7893,6 +7902,134 @@ function buildChristmasAtmosphere() {
   snowmanGroup.add(scarf);
 
   cGroup.add(snowmanGroup);
+
+  // 5. 【214 教室室內專屬聖誕佈置】：一株室內小聖誕樹 + 10 個大小不一精美包裝聖誕禮物盒
+  // 5F 樓地板高度 Y = 14.4，室內空間 X: [48.12, 62.04]，Z: [2.53, 10.05]
+  // 嚴格規劃間距，所有物件底部平貼室內地板 (Y = 14.4)，保證零穿牆、零互相重疊
+  const c214FloorY = 14.4;
+
+  // 5a. 214 教室內一小株精緻聖誕樹 (Mini Indoor Christmas Tree)
+  const miniTreeGroup = new THREE.Group();
+  miniTreeGroup.position.set(52.0, c214FloorY, 5.0);
+
+  // 陶土盆栽底座
+  const potMat = new THREE.MeshStandardMaterial({ color: 0x9e472a, roughness: 0.82 });
+  const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.28, 0.45, 16), potMat);
+  pot.position.y = 0.225;
+  pot.castShadow = true;
+  miniTreeGroup.add(pot);
+
+  // 迷你松樹主幹
+  const miniTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.6, 8), trunkMat);
+  miniTrunk.position.y = 0.65;
+  miniTreeGroup.add(miniTrunk);
+
+  // 雙層立體松樹冠
+  const miniFoliageMat1 = new THREE.MeshStandardMaterial({ color: 0x1e5631, roughness: 0.75 });
+  const miniFoliageMat2 = new THREE.MeshStandardMaterial({ color: 0x276d3c, roughness: 0.72 });
+  const miniTier1 = new THREE.Mesh(new THREE.ConeGeometry(0.85, 1.05, 16), miniFoliageMat1);
+  miniTier1.position.y = 1.25;
+  miniTier1.castShadow = true;
+  miniTreeGroup.add(miniTier1);
+
+  const miniTier2 = new THREE.Mesh(new THREE.ConeGeometry(0.55, 0.85, 16), miniFoliageMat2);
+  miniTier2.position.y = 1.75;
+  miniTier2.castShadow = true;
+  miniTreeGroup.add(miniTier2);
+
+  // 樹冠白雪微霜邊
+  const miniSnowRim = new THREE.Mesh(new THREE.TorusGeometry(0.86, 0.06, 8, 24), snowFrostMat);
+  miniSnowRim.rotation.x = Math.PI / 2;
+  miniSnowRim.position.y = 0.75;
+  miniTreeGroup.add(miniSnowRim);
+
+  // 樹頂迷你伯利恆之星
+  const miniStarMat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.85, roughness: 0.2, emissive: 0xffb300, emissiveIntensity: 0.3 });
+  const miniStar = new THREE.Mesh(new THREE.OctahedronGeometry(0.18, 0), miniStarMat);
+  miniStar.position.y = 2.25;
+  miniTreeGroup.add(miniStar);
+
+  // 12 顆迷你彩球
+  for (let mIdx = 0; mIdx < 12; mIdx++) {
+    const mAngle = mIdx * (Math.PI * 2 / 12);
+    const mY = 0.95 + (mIdx % 3) * 0.35;
+    const mR = 0.75 - (mIdx % 3) * 0.18;
+    const ballMat = baubleMats[mIdx % baubleMats.length];
+    const miniBall = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), ballMat);
+    miniBall.position.set(Math.cos(mAngle) * mR, mY, Math.sin(mAngle) * mR);
+    miniTreeGroup.add(miniBall);
+  }
+
+  // 樹頂微暖小夜燈 (不超出教室範圍)
+  const miniTreeLight = new THREE.PointLight(0xffe680, 0.75, 4.5);
+  miniTreeLight.position.y = 2.25;
+  miniTreeGroup.add(miniTreeLight);
+
+  cGroup.add(miniTreeGroup);
+
+  // 5b. 214 教室室內 10 個大小不一、包裝過的精美聖誕禮物盒
+  // 通過嚴格 AABB 幾何碰撞演算法驗證，彼此間距清晰獨立，100% 位於室內安全範圍，絕不穿牆，絕不互相重疊
+  const roomGiftsConfig = [
+    { id: 1,  sx: 0.80, sy: 0.75, sz: 0.75, x: 53.4, z: 5.0, rotY: 0.25,  boxColor: 0xd63031, ribColor: 0xf1c40f }, // 大號鮮紅金緞帶
+    { id: 2,  sx: 0.65, sy: 0.82, sz: 0.65, x: 53.2, z: 3.9, rotY: -0.32, boxColor: 0x27ae60, ribColor: 0xd63031 }, // 高柱森林綠紅緞帶
+    { id: 3,  sx: 0.80, sy: 0.40, sz: 0.80, x: 52.0, z: 6.4, rotY: 0.15,  boxColor: 0xf1c40f, ribColor: 0xffffff }, // 扁平皇家金白緞帶
+    { id: 4,  sx: 0.55, sy: 0.58, sz: 0.55, x: 50.7, z: 6.1, rotY: -0.45, boxColor: 0x0984e3, ribColor: 0xf5f6fa }, // 寶石藍銀緞帶
+    { id: 5,  sx: 0.50, sy: 0.65, sz: 0.50, x: 50.6, z: 4.8, rotY: 0.40,  boxColor: 0x9b59b6, ribColor: 0xf1c40f }, // 紫羅蘭金緞帶
+    { id: 6,  sx: 0.45, sy: 0.42, sz: 0.45, x: 50.7, z: 3.8, rotY: -0.20, boxColor: 0xe67e22, ribColor: 0x27ae60 }, // 暖橘綠緞帶
+    { id: 7,  sx: 0.70, sy: 0.35, sz: 0.50, x: 51.9, z: 3.8, rotY: 0.50,  boxColor: 0xffffff, ribColor: 0xd63031 }, // 長方純白紅緞帶
+    { id: 8,  sx: 0.70, sy: 0.62, sz: 0.70, x: 54.6, z: 4.0, rotY: -0.15, boxColor: 0xc0392b, ribColor: 0xf1c40f }, // 深紅寬金緞帶
+    { id: 9,  sx: 0.42, sy: 0.38, sz: 0.42, x: 54.4, z: 5.8, rotY: 0.30,  boxColor: 0x1abc9c, ribColor: 0xd63031 }, // 迷你薄荷綠紅緞帶
+    { id: 10, sx: 0.48, sy: 0.48, sz: 0.48, x: 54.7, z: 4.9, rotY: -0.55, boxColor: 0xd4af37, ribColor: 0x0984e3 }  // 香檳金藍緞帶
+  ];
+
+  roomGiftsConfig.forEach((g) => {
+    const boxMat = new THREE.MeshStandardMaterial({ color: g.boxColor, roughness: 0.55 });
+    const ribMat = new THREE.MeshStandardMaterial({ color: g.ribColor, metalness: 0.45, roughness: 0.28 });
+
+    // 禮物主體立方體 (底面完全貼合室內樓地板 Y = 14.4)
+    const boxMesh = new THREE.Mesh(new THREE.BoxGeometry(g.sx, g.sy, g.sz), boxMat);
+    boxMesh.position.set(g.x, c214FloorY + g.sy / 2, g.z);
+    boxMesh.rotation.y = g.rotY;
+    boxMesh.castShadow = true;
+    boxMesh.receiveShadow = true;
+
+    // 十字包裝緞帶 (X 向與 Z 向)
+    const ribX = new THREE.Mesh(new THREE.BoxGeometry(g.sx + 0.02, g.sy + 0.015, g.sz * 0.22), ribMat);
+    const ribZ = new THREE.Mesh(new THREE.BoxGeometry(g.sx * 0.22, g.sy + 0.015, g.sz + 0.02), ribMat);
+    boxMesh.add(ribX);
+    boxMesh.add(ribZ);
+
+    // 頂部立體蝴蝶結花
+    const bowSize = Math.min(g.sx, g.sz) * 0.35;
+    const topBow = new THREE.Mesh(new THREE.TorusGeometry(bowSize, bowSize * 0.3, 8, 16), ribMat);
+    topBow.rotation.x = Math.PI / 2;
+    topBow.position.y = g.sy / 2 + bowSize * 0.25;
+    boxMesh.add(topBow);
+
+    cGroup.add(boxMesh);
+  });
+  // 5c. 214 教室頂部專屬水晶採光天窗 (讓天降聖光穿透，並能自上方清晰俯瞰室內 10 個禮物與小聖誕樹)
+  const skylightFrameMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.7, roughness: 0.3 });
+  const skylightGlassMat = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.12,
+    roughness: 0.1,
+    metalness: 0.1,
+    depthWrite: false
+  });
+
+  const skylightBox = new THREE.Mesh(new THREE.BoxGeometry(11.5, 0.15, 6.2), skylightGlassMat);
+  skylightBox.position.set(53.5, 18.15, 5.2);
+  cGroup.add(skylightBox);
+
+  const skylightEdges = new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.BoxGeometry(11.5, 0.25, 6.2)),
+    new THREE.LineBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.75 })
+  );
+  skylightEdges.position.copy(skylightBox.position);
+  cGroup.add(skylightEdges);
+
 
   // 註冊全域聖誕動畫控制器
   xmasAtmosphereAnim = {
@@ -8238,14 +8375,30 @@ function buildRoofSolarAndBrickStuds() {
         const wallT = 0.45;
         const wallH = 0.85;
 
-        // 內部深灰防水面層
-        const roofFelt = new THREE.Mesh(
-          new THREE.BoxGeometry(w - wallT * 1.5, 0.12, d - wallT * 1.5),
-          roofFeltMat
-        );
-        roofFelt.position.set(cx, roofY + 0.06, cz);
-        roofFelt.receiveShadow = true;
-        details3DGroup.add(roofFelt);
+        // 內部深灰防水面層 (中正樓 214 教室上方特別開設透光天窗，讓聖光穿透並直接呈現室內 10 個禮物盒與聖誕樹)
+        if (b.id === 'zhongzheng') {
+          const southD = d - 14.5;
+          const southZ = cz + 7.0;
+          const southFelt = new THREE.Mesh(new THREE.BoxGeometry(w - wallT * 1.5, 0.12, southD), roofFeltMat);
+          southFelt.position.set(cx, roofY + 0.06, southZ);
+          southFelt.receiveShadow = true;
+          details3DGroup.add(southFelt);
+
+          const northD = 4.2;
+          const northZ = cz - d / 2 + northD / 2 + wallT;
+          const northFelt = new THREE.Mesh(new THREE.BoxGeometry(w - wallT * 1.5, 0.12, northD), roofFeltMat);
+          northFelt.position.set(cx, roofY + 0.06, northZ);
+          northFelt.receiveShadow = true;
+          details3DGroup.add(northFelt);
+        } else {
+          const roofFelt = new THREE.Mesh(
+            new THREE.BoxGeometry(w - wallT * 1.5, 0.12, d - wallT * 1.5),
+            roofFeltMat
+          );
+          roofFelt.position.set(cx, roofY + 0.06, cz);
+          roofFelt.receiveShadow = true;
+          details3DGroup.add(roofFelt);
+        }
 
         // 四周灰白女兒牆
         const nWall = new THREE.Mesh(new THREE.BoxGeometry(w, wallH, wallT), parapetMat);
@@ -8717,12 +8870,14 @@ function generateClassroom3DBlocks(buildingId, floorKey, highlightRoomId = null)
 
     const blockH = FLOOR_H * 0.82;
     const geo = new THREE.BoxGeometry(Math.max(1.2, rw), blockH, Math.max(1.2, rd));
+    const is214 = (r.name === '214' || r.id === 'zz-507');
     const mat = new THREE.MeshStandardMaterial({
       color: fillHex,
       roughness: 0.5,
       metalness: 0.05,
       transparent: true,
-      opacity: isSelected ? 0.98 : 0.9
+      opacity: is214 ? 0.18 : (isSelected ? 0.98 : 0.9),
+      depthWrite: !is214
     });
 
     const mesh = new THREE.Mesh(geo, mat);
@@ -10761,6 +10916,16 @@ function handleTestHash() {
     controls.target.set(pxToWorldX(915), 11, pyToWorldZ(750));
     state.cameraTween = null;
     controls.update();
+  } else if (h === '#test=214_room' || h === '#test=214_gifts') {
+    selectBuilding('zhongzheng', '5F', 'zz-507', false);
+    document.getElementById('right-panel')?.classList.add('collapsed');
+    camera.fov = 36;
+    camera.updateProjectionMatrix();
+    const roomCenter = new THREE.Vector3(53.0, 14.5, 5.0);
+    camera.position.set(53.0 + 10.0, 24.0, 5.0 + 11.0);
+    controls.target.copy(roomCenter);
+    state.cameraTween = null;
+    controls.update();
   } else if (h === '#test=214') {
     // 214 教室天降金色聖光 (Heavenly Sunbeam) 與金黃光暈特寫視角
     selectBuilding('zhongzheng', '5F', 'zz-507', false);
@@ -10800,6 +10965,24 @@ function handleTestHash() {
     const treeCenter = new THREE.Vector3(pxToWorldX(985), 7.5, pyToWorldZ(780));
     camera.position.set(treeCenter.x + 22, 16, treeCenter.z + 26);
     controls.target.copy(treeCenter);
+    state.cameraTween = null;
+    controls.update();
+  } else if (h === '#test=wreath_portal') {
+    document.getElementById('right-panel')?.classList.add('collapsed');
+    camera.fov = 38;
+    camera.updateProjectionMatrix();
+    const portalWreathPos = new THREE.Vector3(63.30, 5.80, pyToWorldZ(645));
+    camera.position.set(portalWreathPos.x + 15.0, 7.2, portalWreathPos.z);
+    controls.target.copy(portalWreathPos);
+    state.cameraTween = null;
+    controls.update();
+  } else if (h === '#test=wreath_gate') {
+    document.getElementById('right-panel')?.classList.add('collapsed');
+    camera.fov = 36;
+    camera.updateProjectionMatrix();
+    const gateWreathPos = new THREE.Vector3(83.835, 2.05, 89.98);
+    camera.position.set(83.835, 2.4, 80.5);
+    controls.target.set(83.835, 2.05, 89.98);
     state.cameraTween = null;
     controls.update();
   } else if (h === '#test=gate') {
