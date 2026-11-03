@@ -77,6 +77,7 @@ const html = `<!DOCTYPE html>
           <button type="button" class="theme-item" data-theme="pixel">像素冒險</button>
           <button type="button" class="theme-item" data-theme="brick">微縮積木</button>
           <button type="button" class="theme-item" data-theme="night">星夜光彩</button>
+          <button type="button" class="theme-item" data-theme="xmas">聖誕冬雪</button>
         </div>
       </div>
       <button id="btn-toggle-eco" class="ctrl-btn" title="切換省電渲染模式">省電模式</button>
