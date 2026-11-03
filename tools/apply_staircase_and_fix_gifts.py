@@ -434,3 +434,4 @@ if spawn_hook in app and "戶外景觀樓梯 (直通 214 教室)" not in app:
 with open('js/app.js', 'w', encoding='utf-8') as f:
     f.write(app)
 print('All updates written to js/app.js successfully.')
+

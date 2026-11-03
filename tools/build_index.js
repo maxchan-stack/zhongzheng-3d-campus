@@ -257,6 +257,7 @@ const html = `<!DOCTYPE html>
         <button type="button" class="char-chip" id="char-girl-btn" data-char="girl">女同學</button>
         <button type="button" class="char-chip active" id="walk-cam-view-btn">視角：第三人稱</button>
         <button type="button" class="char-chip" id="walk-pace-btn">速度：步行</button>
+        <button type="button" class="char-chip" id="climb-stair-btn" style="background:linear-gradient(135deg, #10b981, #059669);color:#fff;font-weight:700;">🪜 爬樓梯上 214</button>
         <button type="button" class="char-chip" id="walk-hud-collapse-btn" title="快捷鍵 H">收合面板</button>
         <button type="button" class="primary-btn" id="exit-walk-btn" style="flex:none;padding:5px 11px;">返回鳥瞰</button>
       </div>
