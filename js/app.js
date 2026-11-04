@@ -40,6 +40,11 @@ let xmasAtmosphereAnim = null;
 const xmasDecorationsGroup = new THREE.Group();
 xmasDecorationsGroup.name = 'XMAS_DECORATIONS';
 
+let rainAtmosphereAnim = null;
+const rainAtmosphereGroup = new THREE.Group();
+rainAtmosphereGroup.name = 'RAIN_ATMOSPHERE';
+rainAtmosphereGroup.visible = false;
+
 const campusNpcs = {
   sports: [],
   walkway: []
@@ -237,6 +242,7 @@ const details3DGroup = new THREE.Group();
 scene.add(details3DGroup);
 
 scene.add(xmasDecorationsGroup);
+scene.add(rainAtmosphereGroup);
 
 const classroomBlocksGroup = new THREE.Group();
 scene.add(classroomBlocksGroup);
@@ -453,17 +459,87 @@ function buildAllBuildings() {
       const isWalkablePlaza = Boolean(part.isPlaza);
 
       if (!isWalkablePlaza) {
-        collisionBoxes.push({
-          minX: cx - w / 2 - 0.45,
-          maxX: cx + w / 2 + 0.45,
-          minZ: cz - d / 2 - 0.45,
-          maxZ: cz + d / 2 + 0.45,
-          buildingId: b.id,
-          name: part.name || b.name
-        });
+        if (b.id === 'zhongzheng') {
+          // 中正樓 1F 挑空穿堂開鑿：碰撞盒分為北翼與南翼，中央穿堂 [25.4, 31.8] 完全暢行通透
+          collisionBoxes.push({
+            minX: cx - w / 2 - 0.45,
+            maxX: cx + w / 2 + 0.45,
+            minZ: cz - d / 2 - 0.45,
+            maxZ: 25.4,
+            buildingId: b.id,
+            name: (part.name || b.name) + ' (北翼生活科技)'
+          });
+          collisionBoxes.push({
+            minX: cx - w / 2 - 0.45,
+            maxX: cx + w / 2 + 0.45,
+            minZ: 31.8,
+            maxZ: cz + d / 2 + 0.45,
+            buildingId: b.id,
+            name: (part.name || b.name) + ' (南翼修繕中心)'
+          });
+        } else {
+          collisionBoxes.push({
+            minX: cx - w / 2 - 0.45,
+            maxX: cx + w / 2 + 0.45,
+            minZ: cz - d / 2 - 0.45,
+            maxZ: cz + d / 2 + 0.45,
+            buildingId: b.id,
+            name: part.name || b.name
+          });
+        }
       }
 
       for (let f = 1; f <= partFloors; f++) {
+        if (b.id === 'zhongzheng' && f === 1) {
+          // 中正樓 1F 穿堂幾何開鑿：切分為北翼（生活科技教室）與南翼（修繕中心），穿堂中央 [25.4, 31.8] 完全鏤空留白
+          const segs = [
+            { minZ: cz - d / 2, maxZ: 25.4 },
+            { minZ: 31.8, maxZ: cz + d / 2 }
+          ];
+          segs.forEach((seg) => {
+            const segD = seg.maxZ - seg.minZ;
+            const segCz = (seg.minZ + seg.maxZ) / 2;
+            const h = part.heightM ? part.heightM : (FLOOR_H - 0.08);
+            const geo = new THREE.BoxGeometry(w, h, segD);
+            const useFacade = !isWalkablePlaza && !part.heightM;
+            const tex = useFacade ? createFacadeTexture(partColor, false, b.sensitive) : null;
+            if (tex) tex.repeat.set(Math.max(1, Math.round(w / 10)), 1);
+
+            const roofMat = new THREE.MeshStandardMaterial({
+              color: partColor,
+              roughness: 0.8
+            });
+            const sideMat = useFacade
+              ? new THREE.MeshStandardMaterial({ map: tex, roughness: 0.75, metalness: 0.08 })
+              : new THREE.MeshStandardMaterial({ color: partColor, roughness: 0.85, metalness: 0.1 });
+
+            const materials = [sideMat, sideMat, roofMat, roofMat, sideMat, sideMat];
+            const mesh = new THREE.Mesh(geo, materials);
+            const yCenter = (f - 1) * FLOOR_H + h / 2;
+            mesh.position.set(cx, yCenter, segCz);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            mesh.userData = {
+              buildingId: b.id,
+              floorNum: f,
+              partIdx: pIdx,
+              baseColor: partColor,
+              isPlaza: false,
+              sensitive: b.sensitive
+            };
+
+            const edges = new THREE.EdgesGeometry(geo);
+            const line = new THREE.LineSegments(
+              edges,
+              new THREE.LineBasicMaterial({ color: 0x3a3228, transparent: true, opacity: 0.28 })
+            );
+            mesh.add(line);
+
+            floorGroups[f].add(mesh);
+            buildingMeshes.push(mesh);
+          });
+          continue;
+        }
         const h = part.heightM ? part.heightM : (FLOOR_H - 0.08);
         const geo = new THREE.BoxGeometry(w, h, d);
         const useFacade = !isWalkablePlaza && !part.heightM;
@@ -986,6 +1062,8 @@ function buildCampus3DDetails() {
 
   // 1e. 聖誕節日歡慶氣氛：全校飄雪粒子系統、迎賓廣場巨型立體聖誕樹、聖誕花圈與雪人
   buildChristmasAtmosphere();
+  // 1f. 午後雷陣雨氣候粒子系統
+  buildRainAtmosphere();
   buildExteriorStaircaseTo214();
   buildInteriorCorridorDetails();
 
@@ -2013,17 +2091,26 @@ function buildGateAndEastPlazaDetails() {
     }
   });
 
-  // 2. 1 樓底部整排連續 60 公尺長之「墨綠色斜面遮雨棚」
+  // 2. 1 樓底部之「墨綠色斜面遮雨棚」（切分為南北兩翼，讓出中央挑空大穿堂迎賓正門通道）
   const greenAwningMat = new THREE.MeshStandardMaterial({ color: 0x1f5c38, roughness: 0.55 });
-  const awningMesh = new THREE.Mesh(new THREE.BoxGeometry(2.35, 0.14, zzLen - 2.0), greenAwningMat);
-  awningMesh.position.set(zhongzhengX + 0.95, 3.25, zzCenterZ);
-  awningMesh.rotation.z = -0.26; // 向外向下斜面傾角
-  awningMesh.castShadow = true;
-  details3DGroup.add(awningMesh);
+  const awningNorthLen = 25.0 - (zzZStart + 1.0);
+  const awningNorthMesh = new THREE.Mesh(new THREE.BoxGeometry(2.35, 0.14, awningNorthLen), greenAwningMat);
+  awningNorthMesh.position.set(zhongzhengX + 0.95, 3.25, (zzZStart + 1.0 + 25.0) / 2);
+  awningNorthMesh.rotation.z = -0.26; // 向外向下斜面傾角
+  awningNorthMesh.castShadow = true;
+  details3DGroup.add(awningNorthMesh);
 
-  // 雨棚下方支撐鋼柱
+  const awningSouthLen = (zzZEnd - 1.0) - 32.2;
+  const awningSouthMesh = new THREE.Mesh(new THREE.BoxGeometry(2.35, 0.14, awningSouthLen), greenAwningMat);
+  awningSouthMesh.position.set(zhongzhengX + 0.95, 3.25, (32.2 + zzZEnd - 1.0) / 2);
+  awningSouthMesh.rotation.z = -0.26;
+  awningSouthMesh.castShadow = true;
+  details3DGroup.add(awningSouthMesh);
+
+  // 雨棚下方支撐鋼柱 (跳過穿堂中央區間 [24.5, 32.5]，保持穿堂入口開闊無礙)
   const awningPostMat = new THREE.MeshStandardMaterial({ color: 0x7c838a, metalness: 0.5 });
   for (let z = zzZStart + 2.0; z <= zzZEnd - 2.0; z += 5.5) {
+    if (z >= 24.5 && z <= 32.5) continue; // 穿堂通道兩側完全暢通
     const post = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 3.0, 8), awningPostMat);
     post.position.set(zhongzhengX + 1.95, 1.5, z);
     post.castShadow = true;
@@ -3999,6 +4086,95 @@ function animateChristmasAtmosphere(now, dt) {
   });
 }
 
+// ==========================================
+// 午後雷陣雨動態氣候系統 (Dynamic Rainy Weather System)
+// 包含傾斜高速下落雨絲粒子群 (4,200 條雨絲)、烏雲遮日漫射天光、
+// 濕潤地面積水倒影增強與撐傘動態
+// ==========================================
+
+function buildRainAtmosphere() {
+  const rainCount = 4200;
+  const wSpread = WORLD_W * 0.95;
+  const dSpread = WORLD_D * 0.95;
+  const rainGeo = new THREE.BufferGeometry();
+  const rainPositions = new Float32Array(rainCount * 2 * 3);
+  const rainVelocities = new Float32Array(rainCount);
+  const rainLengths = new Float32Array(rainCount);
+
+  for (let i = 0; i < rainCount; i++) {
+    const rx = (Math.random() - 0.5) * wSpread;
+    const ry = 0.2 + Math.random() * 80.0;
+    const rz = (Math.random() - 0.5) * dSpread;
+    const len = 1.4 + Math.random() * 1.2;
+    const vel = 38.0 + Math.random() * 14.0;
+    rainVelocities[i] = vel;
+    rainLengths[i] = len;
+
+    const pIdx = i * 6;
+    // 頂點 1 (頂端)
+    rainPositions[pIdx + 0] = rx;
+    rainPositions[pIdx + 1] = ry;
+    rainPositions[pIdx + 2] = rz;
+    // 頂點 2 (底端，微幅順風傾斜)
+    rainPositions[pIdx + 3] = rx - 0.12;
+    rainPositions[pIdx + 4] = ry - len;
+    rainPositions[pIdx + 5] = rz - 0.08;
+  }
+
+  rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPositions, 3));
+  const rainMat = new THREE.LineBasicMaterial({
+    color: 0x9ec5e8,
+    transparent: true,
+    opacity: 0.58,
+    depthWrite: false
+  });
+  const rainLines = new THREE.LineSegments(rainGeo, rainMat);
+  rainAtmosphereGroup.add(rainLines);
+
+  rainAtmosphereAnim = {
+    rainLines,
+    rainPositions,
+    rainVelocities,
+    rainLengths,
+    rainCount,
+    wSpread,
+    dSpread
+  };
+}
+
+function animateRainAtmosphere(now, dt) {
+  if (!rainAtmosphereAnim || !rainAtmosphereGroup.visible) return;
+  const anim = rainAtmosphereAnim;
+  const pos = anim.rainPositions;
+  const vels = anim.rainVelocities;
+  const lens = anim.rainLengths;
+  const count = anim.rainCount;
+
+  const windX = Math.sin(now * 0.001) * 0.8 - 0.4;
+  const windZ = Math.cos(now * 0.0008) * 0.6 - 0.3;
+
+  for (let i = 0; i < count; i++) {
+    const pIdx = i * 6;
+    const v = vels[i];
+    const len = lens[i];
+
+    pos[pIdx + 1] -= v * dt;
+    pos[pIdx + 0] += windX * dt;
+    pos[pIdx + 2] += windZ * dt;
+
+    if (pos[pIdx + 1] < 0.2) {
+      pos[pIdx + 1] = 75.0 + Math.random() * 15.0;
+      pos[pIdx + 0] = (Math.random() - 0.5) * anim.wSpread;
+      pos[pIdx + 2] = (Math.random() - 0.5) * anim.dSpread;
+    }
+
+    pos[pIdx + 4] = pos[pIdx + 1] - len;
+    pos[pIdx + 3] = pos[pIdx + 0] + windX * 0.06 - 0.12;
+    pos[pIdx + 5] = pos[pIdx + 2] + windZ * 0.06 - 0.08;
+  }
+  anim.rainLines.geometry.attributes.position.needsUpdate = true;
+}
+
 
 // ==========================================
 // 中正樓北側外牆「折返式鋼構景觀樓梯」模組 (Exterior Zigzag Staircase to 214)
@@ -5713,7 +5889,7 @@ function renderRoute3D(routeInfo) {
 const studentAvatarGroup = new THREE.Group();
 studentAvatarGroup.visible = false;
 scene.add(studentAvatarGroup);
-let avatarLimbs = { leftArm: null, rightArm: null, leftLeg: null, rightLeg: null };
+let avatarLimbs = { leftArm: null, rightArm: null, leftLeg: null, rightLeg: null, umbrella: null };
 
 function buildStudentAvatar(gender = 'boy') {
   while (studentAvatarGroup.children.length > 0) {
@@ -5777,6 +5953,43 @@ function buildStudentAvatar(gender = 'boy') {
   avatarLimbs.rightArm = makeLimb(0.16, 0.54, 0.16, shirtMat, 0.35, 1.28, 0);
   avatarLimbs.leftLeg = makeLimb(0.18, 0.66, 0.18, bottomMat, -0.14, 0.68, 0);
   avatarLimbs.rightLeg = makeLimb(0.18, 0.66, 0.18, bottomMat, 0.14, 0.68, 0);
+
+  // 午後陣雨主題專用：深藍色校園雨傘 (若當前為雨天模式則手持撐開雨傘)
+  const umbrellaGroup = new THREE.Group();
+  umbrellaGroup.name = 'STUDENT_UMBRELLA';
+  const umbrellaCanopyMat = new THREE.MeshStandardMaterial({
+    color: 0x1e3a8a, // 中正深藍色雨傘面
+    roughness: 0.35,
+    metalness: 0.1,
+    side: THREE.DoubleSide
+  });
+  const canopy = new THREE.Mesh(new THREE.ConeGeometry(0.72, 0.32, 14, 1, true), umbrellaCanopyMat);
+  canopy.position.set(0, 0.46, 0);
+  canopy.castShadow = true;
+  umbrellaGroup.add(canopy);
+
+  const shaftMat = new THREE.MeshStandardMaterial({ color: 0xcfd8dc, metalness: 0.85, roughness: 0.2 });
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.96, 8), shaftMat);
+  shaft.position.set(0, 0.08, 0);
+  shaft.castShadow = true;
+  umbrellaGroup.add(shaft);
+
+  const handleMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.7 });
+  const handle = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.012, 6, 12, Math.PI), handleMat);
+  handle.position.set(0.045, -0.40, 0);
+  handle.rotation.z = Math.PI / 2;
+  umbrellaGroup.add(handle);
+
+  const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.02, 0.12, 8), shaftMat);
+  tip.position.set(0, 0.68, 0);
+  umbrellaGroup.add(tip);
+
+  umbrellaGroup.position.set(0.36, 1.42, 0.10);
+  umbrellaGroup.rotation.z = -0.32;
+  umbrellaGroup.rotation.x = 0.18;
+  umbrellaGroup.visible = (state.theme === 'rain');
+  studentAvatarGroup.add(umbrellaGroup);
+  avatarLimbs.umbrella = umbrellaGroup;
 }
 buildStudentAvatar('boy');
 
@@ -6216,7 +6429,7 @@ function setVisualTheme(theme) {
   state.isNight = (theme === 'night');
   document.body.classList.toggle('night-mode', state.isNight);
 
-  const labelMap = { day: '晴空寫實', pixel: '像素冒險', brick: '微縮積木', night: '星夜光彩', xmas: '聖誕冬雪' };
+  const labelMap = { day: '晴空寫實', pixel: '像素冒險', brick: '微縮積木', night: '星夜光彩', xmas: '聖誕冬雪', rain: '午後陣雨' };
   const labelEl = document.getElementById('theme-menu-label');
   if (labelEl) labelEl.textContent = labelMap[theme] || '晴空寫實';
 
@@ -6239,16 +6452,35 @@ function setVisualTheme(theme) {
   if (!monetSkyMesh) monetSkyMesh = createMonetStarrySky();
   monetSkyMesh.visible = state.isNight;
 
+  const isNight = state.isNight;
   const isXmas = (theme === 'xmas');
-  const skyHex = state.isNight ? 0x081326 : (theme === 'brick' ? 0xcde6f5 : (isXmas ? 0xd0e2f2 : 0xc8dff5));
+  const isRain = (theme === 'rain');
+
+  // 氣候雨絲系統與撐傘切換
+  rainAtmosphereGroup.visible = isRain;
+  if (avatarLimbs.umbrella) {
+    avatarLimbs.umbrella.visible = isRain;
+  }
+
+  // 地面濕度與水窪倒影效果
+  if (isRain) {
+    groundMat.roughness = 0.26;
+    groundMat.metalness = 0.45;
+  } else {
+    groundMat.roughness = 0.94;
+    groundMat.metalness = 0.02;
+  }
+  groundMat.needsUpdate = true;
+
+  const skyHex = isNight ? 0x081326 : (isRain ? 0x627182 : (theme === 'brick' ? 0xcde6f5 : (isXmas ? 0xd0e2f2 : 0xc8dff5)));
   scene.background.setHex(skyHex);
-  scene.fog.color.setHex(state.isNight ? 0x0a1628 : skyHex);
-  scene.fog.density = state.isNight ? 0.0006 : (isXmas ? 0.0011 : 0.0013);
-  hemiLight.intensity = state.isNight ? 0.45 : (isXmas ? 0.95 : 0.88);
-  hemiLight.color.setHex(state.isNight ? 0x90b8f0 : (isXmas ? 0xeef5fc : 0xffffff));
-  dirLight.intensity = state.isNight ? 0.35 : (isXmas ? 1.25 : 1.18);
-  dirLight.color.setHex(state.isNight ? 0xffea9f : (isXmas ? 0xfffaed : 0xfff8e7));
-  nightLightsGroup.visible = state.isNight;
+  scene.fog.color.setHex(isNight ? 0x0a1628 : skyHex);
+  scene.fog.density = isNight ? 0.0006 : (isRain ? 0.0018 : (isXmas ? 0.0011 : 0.0013));
+  hemiLight.intensity = isNight ? 0.45 : (isRain ? 0.60 : (isXmas ? 0.95 : 0.88));
+  hemiLight.color.setHex(isNight ? 0x90b8f0 : (isRain ? 0x94a8bd : (isXmas ? 0xeef5fc : 0xffffff)));
+  dirLight.intensity = isNight ? 0.35 : (isRain ? 0.48 : (isXmas ? 1.25 : 1.18));
+  dirLight.color.setHex(isNight ? 0xffea9f : (isRain ? 0xaec2d8 : (isXmas ? 0xfffaed : 0xfff8e7)));
+  nightLightsGroup.visible = isNight;
 
   buildingMeshes.forEach((m) => {
     if (m.userData && m.userData.baseColor && !m.userData.isPlaza && Array.isArray(m.material)) {
@@ -7131,6 +7363,9 @@ function animate(now) {
   // 聖誕節日飄雪與彩燈旋轉動態
   animateChristmasAtmosphere(now, dt);
 
+  // 午後雷陣雨傾斜高速雨絲粒子動態
+  animateRainAtmosphere(now, dt);
+
   // 運動學生群（田徑奔跑、排球起跳與扣球、籃球跳投與運球）
   campusNpcs.sports.forEach((s) => {
     if (s.role === 'runner') {
@@ -7391,6 +7626,33 @@ function handleTestHash() {
     setViewMode('fpv');
     state.walkPersp = '3rd';
     state.fpv.pos.set(65.0, 1.72, 28.6); // 位於穿堂東側入口，朝西穿堂內部看
+    state.fpv.yaw = -Math.PI / 2;
+    syncFpvCamera();
+    updateClimbButtonState();
+  } else if (h === '#test=breezeway_inside') {
+    // 位於中正樓 1F 穿堂內部正中心，遠眺中庭椰子樹天井花園
+    setViewMode('fpv');
+    state.walkPersp = '3rd';
+    state.fpv.pos.set(59.5, 1.72, 28.6);
+    state.fpv.yaw = -Math.PI / 2;
+    syncFpvCamera();
+    updateClimbButtonState();
+  } else if (h === '#test=rain') {
+    // 午後雷陣雨鳥瞰俯視角 (雨絲、烏雲天空與濕潤地表倒影)
+    setVisualTheme('rain');
+    document.getElementById('right-panel')?.classList.add('collapsed');
+    camera.fov = 48;
+    camera.updateProjectionMatrix();
+    camera.position.set(pxToWorldX(960), 32, pyToWorldZ(880));
+    controls.target.set(pxToWorldX(910), 1.5, pyToWorldZ(680));
+    state.cameraTween = null;
+    controls.update();
+  } else if (h === '#test=rain_walk') {
+    // 雨天實境漫步視角 (同學手持深藍色校園雨傘漫步迎賓廣場)
+    setVisualTheme('rain');
+    setViewMode('fpv');
+    state.walkPersp = '3rd';
+    state.fpv.pos.set(pxToWorldX(990), 1.72, pyToWorldZ(890));
     state.fpv.yaw = -Math.PI / 2;
     syncFpvCamera();
     updateClimbButtonState();
