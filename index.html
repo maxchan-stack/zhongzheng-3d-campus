@@ -8100,22 +8100,22 @@ let climbingAvatarAnim = null;
 // ==========================================
 
 const STAIR_WAYPOINTS = [
-  // 0. 1F 地面平緩接入處
-  new THREE.Vector3(64.5, 0.0, -3.45),
-  // 1. 1F 梯段起點 (東側)
-  new THREE.Vector3(61.2, 0.1, -3.45),
-  // 2. 2F 轉折休息平台 (西側)
-  new THREE.Vector3(48.0, 3.6, -3.45),
-  // 3. 3F 轉折休息平台 (東側)
-  new THREE.Vector3(61.2, 7.2, -3.45),
-  // 4. 4F 轉折休息平台 (西側)
-  new THREE.Vector3(48.0, 10.8, -3.45),
-  // 5. 5F 抵達平台 (東側)
-  new THREE.Vector3(61.2, 14.4, -3.45),
-  // 6. 5F 連通空橋北端
-  new THREE.Vector3(62.5, 14.4, -3.45),
-  // 7. 5F 連通空橋南端 (214 教室正門口外廊)
-  new THREE.Vector3(62.5, 14.4, 5.0),
+  // 0. 1F 地面平緩接入處 (東側迎賓步道)
+  new THREE.Vector3(67.5, 0.0, -3.15),
+  // 1. 1F 梯段起點 (東側平台中心)
+  new THREE.Vector3(66.05, 0.1, -3.15),
+  // 2. 2F 轉折休息平台 (西側平台中心，嚴格對齊西牆角 52.11)
+  new THREE.Vector3(53.30, 3.6, -3.15),
+  // 3. 3F 轉折休息平台 (東側平台中心，嚴格對齊東牆角 67.23)
+  new THREE.Vector3(66.05, 7.2, -3.15),
+  // 4. 4F 轉折休息平台 (西側平台中心)
+  new THREE.Vector3(53.30, 10.8, -3.15),
+  // 5. 5F 抵達平台 (東側平台中心)
+  new THREE.Vector3(66.05, 14.4, -3.15),
+  // 6. 5F 空橋外側銜接處
+  new THREE.Vector3(66.05, 14.4, -2.0),
+  // 7. 5F 連通外廊直通 214 教室正門
+  new THREE.Vector3(66.05, 14.4, 5.0),
   // 8. 走入 214 教室室內核心 (聖誕樹與禮物區)
   new THREE.Vector3(58.5, 14.4, 5.0)
 ];
@@ -8211,224 +8211,163 @@ function startClimbingStairs(targetDir) {
 function buildExteriorStaircaseTo214() {
   const g = exteriorStairsGroup;
 
-  const steelMat = new THREE.MeshStandardMaterial({ color: 0x2c3e50, metalness: 0.75, roughness: 0.35 }); // 工業鋼構立柱與橫梁
-  const treadMat = new THREE.MeshStandardMaterial({ color: 0x7f8c8d, metalness: 0.65, roughness: 0.45 }); // 防滑金屬踏板
-  const railMat = new THREE.MeshStandardMaterial({ color: 0xbdc3c7, metalness: 0.8, roughness: 0.25 });  // 亮銀安全欄杆扶手
-  const postMat = new THREE.MeshStandardMaterial({ color: 0x34495e, metalness: 0.7, roughness: 0.4 });
+  // 結構材質 (消光深鐵灰鋼構、耐磨鋁合金防滑踏板、安全霧銀欄杆)
+  const steelMat = new THREE.MeshStandardMaterial({ color: 0x222a33, metalness: 0.8, roughness: 0.35 });
+  const treadMat = new THREE.MeshStandardMaterial({ color: 0x6e7882, metalness: 0.65, roughness: 0.45 });
+  const railMat = new THREE.MeshStandardMaterial({ color: 0xc8ced4, metalness: 0.85, roughness: 0.2 });
+  const postMat = new THREE.MeshStandardMaterial({ color: 0x2d3748, metalness: 0.75, roughness: 0.35 });
+  const anchorMat = new THREE.MeshStandardMaterial({ color: 0x1a202c, metalness: 0.9, roughness: 0.3 });
 
-  const stairZ = -3.45; // 緊貼中正樓北外牆外側表面 (Z = -2.70)，進深約 1.3m
-  const stairW = 1.35;  // 踏板寬度 (進深)
+  // 幾何基準：
+  // 中正樓北外牆面位於 Z = -2.43，立面寬度 X: [52.11, 67.23]，立面中心 X = 59.67，總寬度 15.12m
+  // 樓梯結構進深中心設於 Z = -3.15，梯寬 1.30m，靠牆內緣在 Z = -2.50，緊密貼合北外牆
+  const stairZ = -3.15;
+  const stairW = 1.30;
+  const wallZ = -2.43;
 
-  // A. 貫穿 1F 至 5F 的四根堅固支撐鋼管立柱
-  const colXs = [48.0, 61.8];
-  const colZs = [stairZ - 0.65, stairZ + 0.65];
+  // 左右兩側平台中心座標 (均內縮 1.18m，平台寬度 2.0m，外緣距建築邊角僅 0.18m，左右對稱)
+  const westPlatformX = 53.30;
+  const eastPlatformX = 66.05;
+
+  // A. 4 根垂直貫穿 1F 至 5F 的重型主承重鋼管立柱 (立柱端正筆直，垂直於地面零歪斜)
+  const colXs = [52.45, 66.90];
+  const colZs = [stairZ - 0.55, stairZ + 0.55];
   colXs.forEach((cx) => {
     colZs.forEach((cz) => {
-      const col = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, 15.0, 12), steelMat);
+      const col = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.15, 15.2, 16), steelMat);
       col.position.set(cx, 7.5, cz);
       col.castShadow = true;
       g.add(col);
     });
   });
 
-  // 輔助函式：建立轉折休息平台 (Landing)
-  function createLanding(cx, y, w = 2.4, d = 1.5) {
-    const landingMesh = new THREE.Mesh(new THREE.BoxGeometry(w, 0.18, d), steelMat);
+  // 輔助函式：建立水平轉折休息平台 (Landing Platform)
+  function createLanding(cx, y, isWest) {
+    const pW = 2.0;
+    const pD = stairW;
+    const landingMesh = new THREE.Mesh(new THREE.BoxGeometry(pW, 0.18, pD), steelMat);
     landingMesh.position.set(cx, y, stairZ);
     landingMesh.castShadow = true;
     landingMesh.receiveShadow = true;
     g.add(landingMesh);
 
-    // 外側三面安全欄杆 (高 1.05m)
+    // 牆體錨定固結梁 (Cantilever Wall Anchors)：橫向咬入中正樓北外牆，確保結構端正貼齊不脫節
+    [-pW / 3, pW / 3].forEach((ox) => {
+      const anchorBeam = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.20, Math.abs(wallZ - (stairZ + pD / 2)) + 0.15), anchorMat);
+      anchorBeam.position.set(cx + ox, y - 0.08, (stairZ + pD / 2 + wallZ) / 2);
+      anchorBeam.castShadow = true;
+      g.add(anchorBeam);
+    });
+
+    // 安全防護欄杆 (高 1.05m)
     const rH = 1.05;
-    // 北側外緣欄杆
-    const railNorth = new THREE.Mesh(new THREE.BoxGeometry(w, 0.08, 0.06), railMat);
-    railNorth.position.set(cx, y + rH, stairZ - d / 2 + 0.03);
+    // 北側外緣扶手
+    const railNorth = new THREE.Mesh(new THREE.BoxGeometry(pW, 0.06, 0.06), railMat);
+    railNorth.position.set(cx, y + rH, stairZ - pD / 2 + 0.03);
     g.add(railNorth);
 
-    // 豎直安全立柱
-    for (let rx = -w / 2 + 0.1; rx <= w / 2 - 0.1; rx += 0.5) {
+    // 外側封閉端部扶手 (西側平台封閉西側，東側平台封閉東側)
+    const endX = isWest ? (cx - pW / 2 + 0.03) : (cx + pW / 2 - 0.03);
+    const railEnd = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, pD), railMat);
+    railEnd.position.set(endX, y + rH, stairZ);
+    g.add(railEnd);
+
+    // 垂直欄杆柱 (間距 0.4m)
+    for (let rx = -pW / 2 + 0.1; rx <= pW / 2 - 0.1; rx += 0.45) {
       const rPost = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, rH, 6), postMat);
-      rPost.position.set(cx + rx, y + rH / 2, stairZ - d / 2 + 0.03);
+      rPost.position.set(cx + rx, y + rH / 2, stairZ - pD / 2 + 0.03);
       g.add(rPost);
     }
   }
 
-  // 輔助函式：建立斜向梯段 (Flight of Stairs)
-  function createStairFlight(startX, startY, endX, endY, numSteps = 16) {
+  // 輔助函式：建立水平踏步斜向梯段 (Flight of Stairs)
+  function createStairFlight(startX, startY, endX, endY, numSteps = 18) {
     const dx = endX - startX;
     const dy = endY - startY;
     const len = Math.hypot(dx, dy);
     const angle = Math.atan2(dy, dx);
 
-    // 兩側斜向主承重鋼梁 (Stringers)
-    [-stairW / 2 + 0.05, stairW / 2 - 0.05].forEach((dz) => {
-      const stringer = new THREE.Mesh(new THREE.BoxGeometry(len, 0.22, 0.08), steelMat);
-      stringer.position.set((startX + endX) / 2, (startY + endY) / 2, stairZ + dz);
+    // 雙側斜向承重縱梁 (Stringers)
+    [-stairW / 2 + 0.04, stairW / 2 - 0.04].forEach((dz) => {
+      const stringer = new THREE.Mesh(new THREE.BoxGeometry(len, 0.20, 0.08), steelMat);
+      stringer.position.set((startX + endX) / 2, (startY + endY) / 2 - 0.06, stairZ + dz);
       stringer.rotation.z = angle;
       stringer.castShadow = true;
       g.add(stringer);
 
-      // 沿梁安全扶手
-      const handrail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.06, 0.06), railMat);
-      handrail.position.set((startX + endX) / 2, (startY + endY) / 2 + 1.02, stairZ + dz);
-      handrail.rotation.z = angle;
-      g.add(handrail);
+      // 安全扶手 (沿梯段外側平行傾斜)
+      if (dz < 0) { // 僅外側設置扶手，靠牆內側保持視野開朗
+        const handrail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.06, 0.06), railMat);
+        handrail.position.set((startX + endX) / 2, (startY + endY) / 2 + 0.98, stairZ + dz);
+        handrail.rotation.z = angle;
+        g.add(handrail);
+
+        // 每隔 2 公尺設置立柱加固扶手
+        for (let t = 0.15; t <= 0.85; t += 0.35) {
+          const fx = startX + dx * t;
+          const fy = startY + dy * t;
+          const fPost = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.0, 6), postMat);
+          fPost.position.set(fx, fy + 0.48, stairZ + dz);
+          g.add(fPost);
+        }
+      }
     });
 
-    // 階梯踏板 (Treads)
+    // 階梯踏板 (Treads)：踏面絕對水平放置 (rotation = 0，無任何角度歪斜)，平整端正
+    const stepDx = dx / numSteps;
+    const stepDy = dy / numSteps;
+    const treadLen = Math.abs(stepDx) * 1.06;
     for (let s = 0; s < numSteps; s++) {
-      const t = (s + 0.5) / numSteps;
-      const stepX = startX + dx * t;
-      const stepY = startY + dy * t;
-      const tread = new THREE.Mesh(new THREE.BoxGeometry(len / numSteps * 0.92, 0.05, stairW - 0.12), treadMat);
-      tread.position.set(stepX, stepY, stairZ);
+      const sx = startX + stepDx * (s + 0.5);
+      const sy = startY + stepDy * (s + 0.5);
+      const tread = new THREE.Mesh(new THREE.BoxGeometry(treadLen, 0.045, stairW - 0.10), treadMat);
+      tread.position.set(sx, sy, stairZ);
       tread.castShadow = true;
       tread.receiveShadow = true;
       g.add(tread);
     }
   }
 
-  // B. 依紅線折返建構 4 段梯段與各層轉折平台：
-  // 1F 地面起點：X = 61.2, Y = 0.1 (東側)
-  // 第 1 段：由東向西上升至 2F 平台 (X = 49.0, Y = 3.6)
-  createStairFlight(61.2, 0.1, 49.0, 3.6, 18);
-  createLanding(48.0, 3.6);
+  // B. 依使用者標註圖走勢，精準構建 4 段折返梯段與 5 層休息平台：
+  // 1. 1F 地面起點 (東側 X = 66.05) -> 由東向西上升至 2F 平台 (西側 X = 53.30, Y = 3.60)
+  createStairFlight(65.10, 0.10, 54.25, 3.60, 18);
+  createLanding(westPlatformX, 3.60, true);
 
-  // 第 2 段：由西向東折返上升至 3F 平台 (X = 61.2, Y = 7.2)
-  createStairFlight(49.0, 3.6, 61.2, 7.2, 18);
-  createLanding(62.0, 7.2);
+  // 2. 2F 平台 -> 由西向東折返上升至 3F 平台 (東側 X = 66.05, Y = 7.20)
+  createStairFlight(54.25, 3.60, 65.10, 7.20, 18);
+  createLanding(eastPlatformX, 7.20, false);
 
-  // 第 3 段：由東向西折返上升至 4F 平台 (X = 49.0, Y = 10.8)
-  createStairFlight(61.2, 7.2, 49.0, 10.8, 18);
-  createLanding(48.0, 10.8);
+  // 3. 3F 平台 -> 由東向西折返上升至 4F 平台 (西側 X = 53.30, Y = 10.80)
+  createStairFlight(65.10, 7.20, 54.25, 10.80, 18);
+  createLanding(westPlatformX, 10.80, true);
 
-  // 第 4 段：由西向東折返上升至 5F 平台 (X = 61.2, Y = 14.4)
-  createStairFlight(49.0, 10.8, 61.2, 14.4, 18);
-  createLanding(62.0, 14.4);
+  // 4. 4F 平台 -> 由西向東折返上升至 5F 抵達平台 (東側 X = 66.05, Y = 14.40)
+  createStairFlight(54.25, 10.80, 65.10, 14.40, 18);
+  createLanding(eastPlatformX, 14.40, false);
 
-  // C. 5F 抵達平台向南延伸接入 214 教室門口外廊露台 (連通空橋)
-  const bridgeLen = Math.abs(6.29 - stairZ); // 約 9.7 公尺
-  const bridgeCenterZ = (stairZ + 6.29) / 2;
-  const bridgeMesh = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.22, bridgeLen), steelMat);
-  bridgeMesh.position.set(62.5, 14.4, bridgeCenterZ);
+  // C. 5F 抵達平台向南直通 214 教室正門口外廊 (連通空橋，沿 X = 66.05 東立面延伸)
+  const bridgeZStart = stairZ;
+  const bridgeZEnd = 5.0;
+  const bridgeLen = Math.abs(bridgeZEnd - bridgeZStart);
+  const bridgeCenterZ = (bridgeZStart + bridgeZEnd) / 2;
+
+  const bridgeMesh = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.20, bridgeLen), steelMat);
+  bridgeMesh.position.set(eastPlatformX, 14.40, bridgeCenterZ);
   bridgeMesh.castShadow = true;
   bridgeMesh.receiveShadow = true;
   g.add(bridgeMesh);
 
   // 空橋外側安全護欄
-  const bridgeRail = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.05, bridgeLen), railMat);
-  bridgeRail.position.set(63.25, 14.4 + 0.525, bridgeCenterZ);
+  const bridgeRail = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.05, bridgeLen), railMat);
+  bridgeRail.position.set(eastPlatformX + 0.65, 14.40 + 0.525, bridgeCenterZ);
   g.add(bridgeRail);
 
-  // D. 建立戶外樓梯爬梯互動虛擬人物 NPC (身穿冬季校服的學生角色)
-  const studentNpcGroup = new THREE.Group();
-  studentNpcGroup.name = 'CLIMBING_STUDENT_214';
-
-  const uniformBlueMat = new THREE.MeshStandardMaterial({ color: 0x1a3a60, roughness: 0.65 });
-  const skinMat = new THREE.MeshStandardMaterial({ color: 0xffdbac, roughness: 0.7 });
-  const pantsMat = new THREE.MeshStandardMaterial({ color: 0x24292e, roughness: 0.75 });
-  const redScarfMat = new THREE.MeshStandardMaterial({ color: 0xc0392b, roughness: 0.6 });
-
-  // 軀幹
-  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.55, 0.24), uniformBlueMat);
-  torso.position.y = 0.88;
-  torso.castShadow = true;
-  studentNpcGroup.add(torso);
-
-  // 圍巾
-  const scarf = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.06, 6, 12), redScarfMat);
-  scarf.rotation.x = Math.PI / 2;
-  scarf.position.y = 1.16;
-  studentNpcGroup.add(scarf);
-
-  // 頭部
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 12), skinMat);
-  head.position.y = 1.34;
-  head.castShadow = true;
-  studentNpcGroup.add(head);
-
-  // 頭髮
-  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 10), new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 }));
-  hair.position.set(0, 1.38, -0.02);
-  studentNpcGroup.add(hair);
-
-  // 雙臂與雙腿 (具有擺臂與換腿關節組)
-  const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.62, 0.14), pantsMat);
-  leftLeg.position.set(-0.12, 0.35, 0);
-  leftLeg.castShadow = true;
-  studentNpcGroup.add(leftLeg);
-
-  const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.62, 0.14), pantsMat);
-  rightLeg.position.set(0.12, 0.35, 0);
-  rightLeg.castShadow = true;
-  studentNpcGroup.add(rightLeg);
-
-  const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.50, 0.12), uniformBlueMat);
-  leftArm.position.set(-0.28, 0.82, 0);
-  studentNpcGroup.add(leftArm);
-
-  const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.50, 0.12), uniformBlueMat);
-  rightArm.position.set(0.28, 0.82, 0);
-  studentNpcGroup.add(rightArm);
-
-  // 初始位置放置於 3F 梯段中央，正朝 214 教室方向上樓
-  studentNpcGroup.position.set(55.0, 5.4, stairZ);
-  g.add(studentNpcGroup);
-
-  // 註冊攀爬人物控制器
-  climbingAvatarAnim = {
-    root: studentNpcGroup,
-    leftLeg,
-    rightLeg,
-    leftArm,
-    rightArm,
-    stairZ,
-    // 折返關鍵節點陣列 (1F -> 2F -> 3F -> 4F -> 5F -> 214 教室室內)
-    waypoints: [
-      new THREE.Vector3(61.2, 0.1, stairZ),
-      new THREE.Vector3(48.5, 3.6, stairZ),
-      new THREE.Vector3(61.2, 7.2, stairZ),
-      new THREE.Vector3(48.5, 10.8, stairZ),
-      new THREE.Vector3(61.2, 14.4, stairZ),
-      new THREE.Vector3(62.5, 14.4, 0.0),
-      new THREE.Vector3(58.5, 14.4, 5.0)
-    ]
-  };
-}
-
-function animateClimbingAvatar(now, dt) {
-  if (!climbingAvatarAnim) return;
-  const a = climbingAvatarAnim;
-  const pts = a.waypoints;
-
-  // 計算循環路徑進度 (約 28 秒爬一趟循環)
-  const cycleTime = 28.0;
-  const t = (now * 0.001) % cycleTime;
-  const prog = t / cycleTime; // 0 到 1
-
-  const totalSegments = pts.length - 1;
-  const segIdx = Math.min(totalSegments - 1, Math.floor(prog * totalSegments));
-  const segT = (prog * totalSegments) - segIdx;
-
-  const p1 = pts[segIdx];
-  const p2 = pts[segIdx + 1];
-
-  // 線性插值位置
-  a.root.position.lerpVectors(p1, p2, segT);
-
-  // 朝向移動方向
-  const dx = p2.x - p1.x;
-  const dz = p2.z - p1.z;
-  const yaw = Math.atan2(dx, dz);
-  a.root.rotation.y = yaw;
-
-  // 爬梯雙腿與手臂擺動動畫
-  const stepSwing = Math.sin(now * 0.007) * 0.45;
-  a.leftLeg.rotation.x = stepSwing;
-  a.rightLeg.rotation.x = -stepSwing;
-  a.leftArm.rotation.x = -stepSwing * 0.8;
-  a.rightArm.rotation.x = stepSwing * 0.8;
+  // 空橋錨定支撐托架
+  for (let bz = bridgeZStart + 1.8; bz <= bridgeZEnd - 0.5; bz += 2.2) {
+    const bracket = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.16, 0.16), anchorMat);
+    bracket.position.set(eastPlatformX - 0.45, 14.40 - 0.25, bz);
+    g.add(bracket);
+  }
 }
 
 function buildColorfulFlowerBeds() {
@@ -11233,7 +11172,6 @@ function animate(now) {
 
   // 聖誕節日飄雪與彩燈旋轉動態
   animateChristmasAtmosphere(now, dt);
-  animateClimbingAvatar(now, dt);
 
   // 運動學生群（田徑奔跑、排球起跳與扣球、籃球跳投與運球）
   campusNpcs.sports.forEach((s) => {
@@ -11335,12 +11273,12 @@ function handleTestHash() {
     state.cameraTween = null;
     controls.update();
   } else if (h === '#test=stair_214') {
-    // 中正樓北側折返式鋼構樓梯與攀爬互動人物特寫視角
+    // 中正樓北側折返式鋼構樓梯正對全景視角 (精準對齊立面中軸 X = 59.67)
     document.getElementById('right-panel')?.classList.add('collapsed');
-    camera.fov = 42;
+    camera.fov = 40;
     camera.updateProjectionMatrix();
-    const stairTarget = new THREE.Vector3(55.0, 7.5, -3.45);
-    camera.position.set(55.0, 9.5, -3.45 - 24.0); // 自北側道路正對山牆全景仰視
+    const stairTarget = new THREE.Vector3(59.67, 7.8, -2.43);
+    camera.position.set(59.67, 8.2, -2.43 - 26.5); // 嚴格自正北方朝正南方 (+Z) 水平正視，檢視左右兩側對稱性與無歪斜
     controls.target.copy(stairTarget);
     state.cameraTween = null;
     controls.update();
