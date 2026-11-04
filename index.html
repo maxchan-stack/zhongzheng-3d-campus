@@ -4366,7 +4366,7 @@ function getResponsiveOverviewCamera() {
 }
 
 const initCamCfg = getResponsiveOverviewCamera();
-const camera = new THREE.PerspectiveCamera(initCamCfg.fov, window.innerWidth / window.innerHeight, 0.5, 2200);
+const camera = new THREE.PerspectiveCamera(initCamCfg.fov, window.innerWidth / window.innerHeight, 0.25, 2200);
 camera.position.copy(initCamCfg.pos);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -4379,11 +4379,26 @@ container.appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.07;
-controls.maxPolarAngle = Math.PI / 2 - 0.03;
-controls.minDistance = 8;
+// 嚴格限制最大極角為 85.5 度 (Math.PI / 2 - 0.08)，保證視線相對於目標永遠維持俯角，絕對禁止由 1F 地板以下往上仰視
+controls.maxPolarAngle = Math.PI / 2 - 0.08;
+controls.minDistance = 6;
 controls.maxDistance = 450;
 controls.target.copy(initCamCfg.target);
-controls.addEventListener('change', () => { state.needsRender = true; });
+
+// 限制最低攝影機高度常數 (絕對禁止穿越 1F 地表 Y = 0)
+const MIN_CAMERA_WORLD_Y = 1.0;  // 攝影機絕對高度最低 1.0 公尺
+const MIN_TARGET_WORLD_Y = 0.2;  // 目標注視點最低 0.2 公尺
+
+controls.addEventListener('change', () => {
+  // 即時鉗位：任何滑鼠拖曳、雙指手勢、視角平移操作，一律強制限制在 1F 地板以上
+  if (camera.position.y < MIN_CAMERA_WORLD_Y) {
+    camera.position.y = MIN_CAMERA_WORLD_Y;
+  }
+  if (controls.target.y < MIN_TARGET_WORLD_Y) {
+    controls.target.y = MIN_TARGET_WORLD_Y;
+  }
+  state.needsRender = true;
+});
 
 const hemiLight = new THREE.HemisphereLight(0xffffff, 0x8ea895, 0.85);
 hemiLight.position.set(0, 200, 0);
@@ -4456,6 +4471,13 @@ const subGround = new THREE.Mesh(subGroundGeo, subGroundMat);
 subGround.position.y = -0.18;
 subGround.receiveShadow = true;
 scene.add(subGround);
+
+// 1F 地板實體厚度地基（深色密實盒體，自 Y = -0.05 延伸至 Y = -30.0，杜絕任何視角自地底穿越）
+const solidFoundationGeo = new THREE.BoxGeometry(WORLD_W + 100, 30.0, WORLD_D + 100);
+const solidFoundationMat = new THREE.MeshStandardMaterial({ color: 0x1f2327, roughness: 0.98, metalness: 0.1 });
+const solidFoundation = new THREE.Mesh(solidFoundationGeo, solidFoundationMat);
+solidFoundation.position.y = -15.05;
+scene.add(solidFoundation);
 
 // === 4. 建立 3D 建物量體、立體景觀設施（停車棚、花圃、球場、中正園、裝置藝術）與碰撞盒 ===
 const buildingsGroup = new THREE.Group();
@@ -9473,11 +9495,16 @@ function focusOnRoom(buildingId, floorKey, roomId) {
 }
 
 function animateCameraTo(targetCamPos, targetLookAt) {
+  const safeCamPos = targetCamPos.clone();
+  const safeLookAt = targetLookAt.clone();
+  if (safeCamPos.y < 1.2) safeCamPos.y = 1.2;
+  if (safeLookAt.y < 0.5) safeLookAt.y = 0.5;
+
   state.cameraTween = {
     startCam: camera.position.clone(),
-    endCam: targetCamPos.clone(),
+    endCam: safeCamPos,
     startTarget: controls.target.clone(),
-    endTarget: targetLookAt.clone(),
+    endTarget: safeLookAt,
     startTime: performance.now(),
     duration: 850
   };
@@ -10945,6 +10972,8 @@ function animate(now) {
     const ease = 1 - Math.pow(1 - t, 3);
     camera.position.lerpVectors(tw.startCam, tw.endCam, ease);
     controls.target.lerpVectors(tw.startTarget, tw.endTarget, ease);
+    if (camera.position.y < MIN_CAMERA_WORLD_Y) camera.position.y = MIN_CAMERA_WORLD_Y;
+    if (controls.target.y < MIN_TARGET_WORLD_Y) controls.target.y = MIN_TARGET_WORLD_Y;
     if (t >= 1) state.cameraTween = null;
     state.needsRender = true;
   }
@@ -11016,6 +11045,13 @@ function animate(now) {
     state.needsRender = true;
   } else if (state.viewMode === 'birdseye') {
     controls.update();
+    // 每幀強制保護：絕對防止 OrbitControls 慣性或平移使攝影機進入 1F 地板以下
+    if (camera.position.y < MIN_CAMERA_WORLD_Y) {
+      camera.position.y = MIN_CAMERA_WORLD_Y;
+    }
+    if (controls.target.y < MIN_TARGET_WORLD_Y) {
+      controls.target.y = MIN_TARGET_WORLD_Y;
+    }
   } else {
     if (state.fpv.turnLeft) state.fpv.yaw -= 1.8 * dt;
     if (state.fpv.turnRight) state.fpv.yaw += 1.8 * dt;
@@ -11428,6 +11464,12 @@ function handleTestHash() {
     camera.position.set(pxToWorldX(950) - 35, 75, pyToWorldZ(250) + 65);
     controls.target.copy(target);
     state.cameraTween = null;
+  } else if (h === '#test=ground_limit') {
+    // 測試極限貼地仰視保護：嘗試將相機設為負值，驗證強制防護機制
+    camera.position.set(pxToWorldX(1000), -5.0, pyToWorldZ(800));
+    controls.target.set(pxToWorldX(1000), -2.0, pyToWorldZ(700));
+    controls.update();
+    state.needsRender = true;
   } else if (h === '#test=walk_stair' || h === '#test=climb') {
     setViewMode('fpv');
     state.walkPersp = '3rd';
