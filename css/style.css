@@ -2158,3 +2158,210 @@ body.panel-open #compass-box {
     border-radius: 12px;
   }
 }
+
+/* ==========================================
+   NPC 角色互動與 RPG 沉浸對話面板系統
+   ========================================== */
+
+/* 1. 靠近人物時的懸浮互動提示 (Proximity Prompt) */
+#npc-interact-prompt {
+  position: fixed;
+  bottom: 148px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  z-index: 1200;
+  pointer-events: auto;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+#npc-interact-prompt.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(12px);
+}
+
+.npc-prompt-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #f8fafc;
+  border: 1.5px solid rgba(96, 165, 250, 0.55);
+  border-radius: 9999px;
+  padding: 8px 18px;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 16px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.npc-prompt-btn:hover {
+  background: rgba(30, 58, 138, 0.92);
+  border-color: #93c5fd;
+  transform: scale(1.04);
+}
+
+.npc-prompt-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: #3b82f6;
+  color: #ffffff;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 2. RPG 底部對話面板 (Dialogue Modal Card) */
+#npc-dialogue-modal {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  width: calc(100% - 32px);
+  max-width: 680px;
+  z-index: 1300;
+  pointer-events: auto;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#npc-dialogue-modal.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(24px);
+}
+
+.dialogue-card {
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1.5px solid rgba(147, 197, 253, 0.4);
+  border-radius: 18px;
+  padding: 18px 22px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 24px rgba(59, 130, 246, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #f1f5f9;
+}
+
+.dialogue-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 10px;
+}
+
+.dialogue-speaker-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dialogue-avatar-badge {
+  font-size: 26px;
+  width: 44px;
+  height: 44px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1.5px solid rgba(96, 165, 250, 0.45);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.dialogue-speaker-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dialogue-speaker-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #60a5fa;
+  letter-spacing: 0.3px;
+}
+
+.dialogue-speaker-role {
+  font-size: 11.5px;
+  color: #94a3b8;
+}
+
+.dialogue-close-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.dialogue-close-btn:hover {
+  background: rgba(239, 68, 68, 0.85);
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+.dialogue-body {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: #e2e8f0;
+  padding: 4px 2px;
+  min-height: 44px;
+}
+
+.dialogue-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dialogue-opt-btn {
+  background: rgba(30, 41, 59, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #f1f5f9;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dialogue-opt-btn:hover {
+  background: rgba(37, 99, 235, 0.85);
+  border-color: #60a5fa;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.dialogue-opt-btn.primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border-color: #60a5fa;
+  font-weight: 600;
+}
+
+.dialogue-opt-btn.primary:hover {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}

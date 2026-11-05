@@ -302,6 +302,36 @@ const html = `<!DOCTYPE html>
 
   <div id="toast-msg"></div>
 
+  <!-- 靠近 NPC 時的浮動互動提示條 (Proximity Prompt) -->
+  <div id="npc-interact-prompt" class="hidden">
+    <button type="button" class="npc-prompt-btn" id="btn-npc-prompt">
+      <span class="npc-prompt-key">E</span>
+      <span>與 <strong id="npc-prompt-name">師生</strong> 交談</span>
+    </button>
+  </div>
+
+  <!-- NPC 角色互動對話視窗 (RPG 對話面板) -->
+  <div id="npc-dialogue-modal" class="hidden">
+    <div class="dialogue-card">
+      <div class="dialogue-header">
+        <div class="dialogue-speaker-wrap">
+          <div class="dialogue-avatar-badge" id="dialogue-avatar-badge">🎓</div>
+          <div class="dialogue-speaker-meta">
+            <span class="dialogue-speaker-name" id="dialogue-speaker-name">中正高中 同學</span>
+            <span class="dialogue-speaker-role" id="dialogue-speaker-role">校園師生</span>
+          </div>
+        </div>
+        <button type="button" class="dialogue-close-btn" id="dialogue-close-btn" title="關閉對話 (ESC)">✕</button>
+      </div>
+      <div class="dialogue-body" id="dialogue-body-text">
+        同學早安！今天第一節課在中正樓，得快點走！
+      </div>
+      <div class="dialogue-options" id="dialogue-options-wrap">
+        <!-- 動態選項按鈕由 JS 注入 -->
+      </div>
+    </div>
+  </div>
+
   <!-- 底部操作說明與版權列 -->
   <footer id="campus-footer">
     <span>操作：滑鼠拖曳旋轉或平移（右上角可切換） · 滾輪縮放 · WASD 移動 · 點擊「最佳全覽」回到全景構圖</span>

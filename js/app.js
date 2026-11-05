@@ -50,6 +50,126 @@ const campusNpcs = {
   walkway: []
 };
 
+// ==========================================
+// 校園 NPC 角色對話與互動系統 (Interactive Dialogue System)
+// ==========================================
+const interactiveNpcRegistry = [];
+const interactiveNpcMeshList = [];
+let activeDialogueNpc = null;
+let nearestNpcToPlayer = null;
+
+function registerInteractiveNpc(npcData) {
+  interactiveNpcRegistry.push(npcData);
+  if (npcData.root) {
+    npcData.root.traverse((child) => {
+      if (child.isMesh) {
+        child.userData.npcData = npcData;
+        interactiveNpcMeshList.push(child);
+      }
+    });
+  }
+}
+
+function openNpcDialogue(npcData) {
+  if (!npcData) return;
+  activeDialogueNpc = npcData;
+
+  // 暫停行走目標
+  if (state.fpv) {
+    state.fpv.targetWalkPoint = null;
+  }
+
+  // 對話期間暫時隱藏地面漫步控制列，聚焦於人物對話視窗
+  const walkBar = document.getElementById('walk-hud-bar');
+  if (walkBar) walkBar.style.display = 'none';
+
+  // NPC 平滑面朝玩家角色
+  if (npcData.root) {
+    const playerPos = (state.viewMode === 'fpv' && state.fpv) ? state.fpv.pos : camera.position;
+    const dx = playerPos.x - npcData.pos.x;
+    const dz = playerPos.z - npcData.pos.z;
+    if (Math.hypot(dx, dz) > 0.001) {
+      npcData.root.rotation.y = Math.atan2(dx, -dz);
+    }
+  }
+
+  const modalEl = document.getElementById('npc-dialogue-modal');
+  const avatarEl = document.getElementById('dialogue-avatar-badge');
+  const nameEl = document.getElementById('dialogue-speaker-name');
+  const roleEl = document.getElementById('dialogue-speaker-role');
+  const bodyEl = document.getElementById('dialogue-body-text');
+  const optsWrap = document.getElementById('dialogue-options-wrap');
+
+  if (avatarEl) avatarEl.textContent = npcData.avatar || '🎓';
+  if (nameEl) nameEl.textContent = npcData.name;
+  if (roleEl) roleEl.textContent = npcData.role || '校園師生';
+  if (bodyEl) bodyEl.textContent = npcData.dialogueTree ? npcData.dialogueTree.greeting : npcData.dialog;
+
+  if (optsWrap) {
+    optsWrap.innerHTML = '';
+    const options = (npcData.dialogueTree && npcData.dialogueTree.options) ? npcData.dialogueTree.options : [
+      { label: '👋 謝謝，再見！', action: 'close' }
+    ];
+
+    options.forEach((opt) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'dialogue-opt-btn' + (opt.action && opt.action !== 'close' ? ' primary' : '');
+      btn.textContent = opt.label;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (opt.reply) {
+          if (bodyEl) bodyEl.textContent = opt.reply;
+        }
+        if (opt.action === 'close') {
+          closeNpcDialogue();
+        } else if (opt.action === 'nav_214') {
+          closeNpcDialogue();
+          focusOnRoom('zhongzheng', '5F', 'zz-507');
+          showToast('🧭 導航已鎖定：中正樓 5F 214 教室！可由挑空大穿堂或北側外牆折返樓梯前往。');
+        } else if (opt.action === 'nav_lib') {
+          closeNpcDialogue();
+          selectBuilding('library', 'ALL', null, true);
+          showToast('📚 導航已鎖定：圖書館！');
+        } else if (opt.action === 'nav_zhongmei') {
+          closeNpcDialogue();
+          selectBuilding('zhongmei', 'ALL', null, true);
+          showToast('🏀 導航已鎖定：中美堂體育館！');
+        } else if (opt.action === 'pet_dog') {
+          if (npcData.tailSpeedBoost !== undefined) {
+            npcData.tailSpeedBoost = 3.5;
+            setTimeout(() => { npcData.tailSpeedBoost = 1.0; }, 3200);
+          }
+          showToast(`🐾 你輕撫了${npcData.name}，好感度大幅上升！`);
+        } else if (opt.action === 'treat_dog') {
+          showToast(`🦴 ${npcData.name}開心地搖尾巴，發出快樂的汪聲！`);
+        }
+      });
+      optsWrap.appendChild(btn);
+    });
+  }
+
+  // 隱藏靠近提示，展開對話視窗
+  document.getElementById('npc-interact-prompt')?.classList.add('hidden');
+  modalEl?.classList.remove('hidden');
+  state.needsRender = true;
+}
+
+function closeNpcDialogue() {
+  if (activeDialogueNpc) {
+    if (activeDialogueNpc.origYaw !== undefined && activeDialogueNpc.root) {
+      activeDialogueNpc.root.rotation.y = activeDialogueNpc.origYaw;
+    }
+    activeDialogueNpc = null;
+  }
+  // 恢復漫步 HUD 控制列顯示
+  const walkBar = document.getElementById('walk-hud-bar');
+  if (walkBar && state.viewMode === 'fpv') walkBar.style.display = '';
+
+  document.getElementById('npc-dialogue-modal')?.classList.add('hidden');
+  state.needsRender = true;
+}
+
 const state = {
   viewMode: 'birdseye',      // 'birdseye' | 'fpv'
   selectedBuildingId: null,
@@ -2747,19 +2867,61 @@ function buildCampusDogsAndMagpies() {
     d.group.rotation.y = cfg.yaw;
     details3DGroup.add(d.group);
 
-    animatedAnimals.dogs.push({
+    const dogObj = {
       ...d,
       wx, wz,
       seed: Math.random() * 100,
-      intro: cfg.intro
-    });
+      intro: cfg.intro,
+      tailSpeedBoost: 1.0
+    };
+    animatedAnimals.dogs.push(dogObj);
+
+    // 註冊至可對話互動 NPC 清單
+    const dogNpcData = {
+      id: 'dog_' + cfg.name,
+      type: 'dog',
+      name: `校犬「${cfg.name}」`,
+      role: '校園守護犬',
+      avatar: '🐕',
+      dialog: `汪！${cfg.intro}`,
+      origYaw: cfg.yaw,
+      pos: new THREE.Vector3(wx, 0, wz),
+      root: d.group,
+      tailGroup: d.tailGroup,
+      headGroup: d.headGroup,
+      tailSpeedBoost: 1.0,
+      dialogueTree: {
+        greeting: `汪汪！我是${cfg.name}，${cfg.intro}`,
+        options: [
+          {
+            id: 'pet',
+            label: '✋ 溫柔摸摸頭',
+            reply: `你蹲下身溫柔撫摸${cfg.name}的頭，牠開心地瞇起雙眼，尾巴快速搖擺個不停，對你發出溫馴的呼嚕聲！`,
+            action: 'pet_dog'
+          },
+          {
+            id: 'treat',
+            label: '🍖 拿出一塊小肉乾',
+            reply: `你拿出一小塊肉乾遞給${cfg.name}，牠輕輕叼走享用，並開心地用鼻子蹭了蹭你的手，滿滿信任！`,
+            action: 'treat_dog'
+          },
+          {
+            id: 'goodbye',
+            label: '👋 乖乖守護校園喔，再見！',
+            action: 'close'
+          }
+        ]
+      }
+    };
+    registerInteractiveNpc(dogNpcData);
 
     collisionCircles.push({
       x: wx,
       z: wz,
       r: 0.58,
       type: 'dog',
-      name: `校犬「${cfg.name}」`
+      name: `校犬「${cfg.name}」`,
+      npcData: dogNpcData
     });
   });
 
@@ -3123,10 +3285,45 @@ function buildCampusSportsAndWalkwayNPCs() {
       seed: Math.random() * 50
     });
 
+    const athleteNpc = {
+      id: 'track_' + cfg.name,
+      type: 'athlete',
+      name: cfg.name,
+      role: '田徑與草坪運動員',
+      avatar: isSoccer ? '⚽' : '🏃',
+      dialog: cfg.dialog,
+      origYaw: cfg.yaw,
+      pos: new THREE.Vector3(wx, 0.35, wz),
+      root: h.root,
+      dialogueTree: {
+        greeting: cfg.dialog,
+        options: [
+          {
+            id: 'cheer',
+            label: '🔥 加油！維持好狀態！',
+            reply: '謝謝同學打氣！操場 400 公尺跑道跑起來腳感極佳，一起運動吧！'
+          },
+          {
+            id: 'where_214',
+            label: '🧭 請問 214 教室在哪裡？',
+            reply: '214 教室在中正樓五樓！從中正樓大穿堂或北側外牆新設的折返樓梯爬上去就到了！',
+            action: 'nav_214'
+          },
+          {
+            id: 'goodbye',
+            label: '👋 繼續加油，再見！',
+            action: 'close'
+          }
+        ]
+      }
+    };
+    registerInteractiveNpc(athleteNpc);
+
     collisionCircles.push({
       x: wx, z: wz, r: 0.55, type: 'npc',
       name: cfg.name,
-      dialog: cfg.dialog
+      dialog: cfg.dialog,
+      npcData: athleteNpc
     });
   });
 
@@ -3387,10 +3584,53 @@ function buildCampusSportsAndWalkwayNPCs() {
       seed: Math.random() * 50
     });
 
+    const isTeacher = cfg.role.includes('teacher');
+    const npcData = {
+      id: 'walkway_' + cfg.name,
+      type: 'human',
+      name: cfg.name,
+      role: isTeacher ? '學校師長' : '中正高中學生',
+      avatar: isTeacher ? '👨‍🏫' : (cfg.gender === 'girl' ? '👧' : '👦'),
+      dialog: cfg.dialog,
+      origYaw: cfg.yaw,
+      pos: new THREE.Vector3(wx, 0.35, wz),
+      root: h.root,
+      dialogueTree: {
+        greeting: cfg.dialog,
+        options: [
+          {
+            id: 'where_214',
+            label: '🧭 請問 214 教室怎麼走？',
+            reply: '214 教室在中正樓五樓北側！你可以從中正樓 1F 挑空大穿堂走樓梯上去，或從北側外牆新設的「折返式鋼構樓梯」一路走上 5 樓露台！我已經為你鎖定導航！',
+            action: 'nav_214'
+          },
+          {
+            id: 'where_lib',
+            label: '📚 請問圖書館在哪裡？',
+            reply: '圖書館在中正園東北側（至聖樓旁），裡面有非常豐富的藏書與舒適的五樓自習空間！',
+            action: 'nav_lib'
+          },
+          {
+            id: 'where_sports',
+            label: '🏀 請問體育館中美堂在哪裡？',
+            reply: '中美堂就在操場東側，是全校歷史最悠久的大型挑空體育館！',
+            action: 'nav_zhongmei'
+          },
+          {
+            id: 'goodbye',
+            label: '👋 謝謝，先走囉！',
+            action: 'close'
+          }
+        ]
+      }
+    };
+    registerInteractiveNpc(npcData);
+
     collisionCircles.push({
       x: wx, z: wz, r: 0.55, type: 'npc',
       name: cfg.name,
-      dialog: cfg.dialog
+      dialog: cfg.dialog,
+      npcData
     });
   });
 }
@@ -6974,6 +7214,23 @@ function setupUIAndInteractions() {
     pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
 
+    // 優先判定：點選 NPC 師生、運動員或校犬進行互動對話
+    if (interactiveNpcMeshList.length > 0) {
+      const npHits = raycaster.intersectObjects(interactiveNpcMeshList, false);
+      if (npHits.length > 0) {
+        let hitObj = npHits[0].object;
+        let nData = hitObj.userData ? hitObj.userData.npcData : null;
+        while (!nData && hitObj.parent) {
+          hitObj = hitObj.parent;
+          nData = hitObj.userData ? hitObj.userData.npcData : null;
+        }
+        if (nData) {
+          openNpcDialogue(nData);
+          return;
+        }
+      }
+    }
+
     if (roomMeshes.length > 0) {
       const roomHits = raycaster.intersectObjects(roomMeshes, false);
       if (roomHits.length > 0) {
@@ -7010,12 +7267,32 @@ function setupUIAndInteractions() {
     }
   });
 
+  // 對話視窗關閉按鈕與靠近互動提示點擊綁定
+  document.getElementById('dialogue-close-btn')?.addEventListener('click', closeNpcDialogue);
+  document.getElementById('btn-npc-prompt')?.addEventListener('click', () => {
+    if (nearestNpcToPlayer) {
+      openNpcDialogue(nearestNpcToPlayer);
+    }
+  });
+
   window.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
     const code = e.code;
-    if (code === 'KeyE' && state.viewMode === 'fpv') {
-      startClimbingStairs();
-      return;
+    if (code === 'KeyE' || e.key === 'e' || e.key === 'E') {
+      if (nearestNpcToPlayer && !activeDialogueNpc) {
+        openNpcDialogue(nearestNpcToPlayer);
+        return;
+      }
+      if (state.viewMode === 'fpv') {
+        startClimbingStairs();
+        return;
+      }
+    }
+    if (e.key === 'Escape' || code === 'Escape') {
+      if (activeDialogueNpc) {
+        closeNpcDialogue();
+        return;
+      }
     }
     if (code === 'KeyH' && state.viewMode === 'fpv') {
       document.getElementById('walk-hud-collapse-btn')?.click();
@@ -7318,9 +7595,44 @@ function animate(now) {
     }
   }
 
-  // 校犬尾巴輕搖與頭部微動
+  // 檢測周遭 4.5 公尺內最近之 NPC 或校犬，動態提供靠近互動提示 (Proximity Prompt)
+  if (state.viewMode === 'fpv' && state.fpv && interactiveNpcRegistry.length > 0) {
+    let nearest = null;
+    let minDist = 4.5;
+    const pPos = state.fpv.pos;
+    for (let i = 0; i < interactiveNpcRegistry.length; i++) {
+      const npc = interactiveNpcRegistry[i];
+      const d = Math.hypot(pPos.x - npc.pos.x, pPos.z - npc.pos.z);
+      if (d < minDist) {
+        minDist = d;
+        nearest = npc;
+      }
+    }
+    nearestNpcToPlayer = nearest;
+    const promptEl = document.getElementById('npc-interact-prompt');
+    const promptNameEl = document.getElementById('npc-prompt-name');
+    if (promptEl) {
+      if (nearestNpcToPlayer && !activeDialogueNpc) {
+        if (promptNameEl) promptNameEl.textContent = nearestNpcToPlayer.name;
+        promptEl.classList.remove('hidden');
+      } else {
+        promptEl.classList.add('hidden');
+      }
+    }
+    if (activeDialogueNpc) {
+      const distToActive = Math.hypot(pPos.x - activeDialogueNpc.pos.x, pPos.z - activeDialogueNpc.pos.z);
+      if (distToActive > 6.5) {
+        closeNpcDialogue();
+      }
+    }
+  } else {
+    document.getElementById('npc-interact-prompt')?.classList.add('hidden');
+  }
+
+  // 校犬尾巴輕搖與頭部微動 (被撫摸時尾巴加速擺動)
   animatedAnimals.dogs.forEach((d) => {
-    d.tailGroup.rotation.z = Math.sin(now * 0.007 + d.seed) * 0.35;
+    const boost = d.tailSpeedBoost || 1.0;
+    d.tailGroup.rotation.z = Math.sin(now * 0.007 * boost + d.seed) * (0.35 * Math.min(2.0, boost));
     d.headGroup.rotation.y = Math.sin(now * 0.002 + d.seed) * 0.16;
   });
   // 樹梢顯著臺灣藍鵲之擺尾與靈動轉頭微動
@@ -7669,6 +7981,30 @@ function handleTestHash() {
     state.fpv.yaw = Math.PI / 2;
     syncFpvCamera();
     updateClimbButtonState();
+  } else if (h === '#test=npc_dialogue') {
+    // 測試師生點選對話視窗與互動選項
+    setViewMode('fpv');
+    state.walkPersp = '3rd';
+    state.fpv.pos.set(pxToWorldX(1035) - 2.0, 1.72, pyToWorldZ(850));
+    state.fpv.yaw = Math.PI / 2;
+    syncFpvCamera();
+    updateClimbButtonState();
+    const targetNpc = interactiveNpcRegistry.find((n) => n.id === 'walkway_中正高中 同學');
+    if (targetNpc) {
+      openNpcDialogue(targetNpc);
+    }
+  } else if (h === '#test=dog_dialogue') {
+    // 測試校犬小黑對話、摸頭與餵食互動
+    setViewMode('fpv');
+    state.walkPersp = '3rd';
+    state.fpv.pos.set(pxToWorldX(1040) + 1.8, 1.72, pyToWorldZ(916));
+    state.fpv.yaw = -Math.PI / 2;
+    syncFpvCamera();
+    updateClimbButtonState();
+    const targetDog = interactiveNpcRegistry.find((n) => n.id === 'dog_小黑');
+    if (targetDog) {
+      openNpcDialogue(targetDog);
+    }
   } else if (h === '#test=ground_limit') {
     // 測試極限貼地仰視保護：嘗試將相機設為負值，驗證強制防護機制
     camera.position.set(pxToWorldX(1000), -5.0, pyToWorldZ(800));
