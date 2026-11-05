@@ -37,3 +37,4 @@ for filename, url in shots:
         target_dest = os.path.join(artifact_dir, filename)
         shutil.copyfile(out_path, target_dest)
         print(f"Copied {filename} to {target_dest}")
+

@@ -7820,8 +7820,8 @@ function buildClassroom214HeavenlyAura() {
 function buildChristmasAtmosphere() {
   const cGroup = xmasDecorationsGroup;
 
-  // 1. 全校飄雪粒子系統 (Snowfall Particles)
-  const snowCount = 2800;
+  // 1. 全校飄雪粒子系統 (Snowfall Particles)：輕量化調校至 850 顆，降低手機與筆電 CPU/GPU 負擔
+  const snowCount = 850;
   const snowGeo = new THREE.BufferGeometry();
   const snowPositions = new Float32Array(snowCount * 3);
   const snowVelocities = new Float32Array(snowCount * 3);
@@ -7863,10 +7863,10 @@ function buildChristmasAtmosphere() {
 
   const snowMat = new THREE.PointsMaterial({
     color: 0xffffff,
-    size: 2.3,
+    size: 2.1,
     map: snowTex,
     transparent: true,
-    opacity: 0.85,
+    opacity: 0.78,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
     sizeAttenuation: true
@@ -8304,26 +8304,28 @@ function animateChristmasAtmosphere(now, dt) {
   if (!xmasAtmosphereAnim) return;
   const anim = xmasAtmosphereAnim;
 
-  // 1. 飄雪粒子更新 (輕盈飄落與微風擺動)
-  const pos = anim.snowPositions;
-  const vel = anim.snowVelocities;
-  const count = anim.snowCount;
-  const windX = Math.sin(now * 0.0009) * 0.45;
-  const windZ = Math.cos(now * 0.0007) * 0.35;
+  // 1. 飄雪粒子更新 (輕盈飄落與微風擺動；若圖層隱藏則跳過以節省運算資源)
+  if (anim.snowMesh.visible) {
+    const pos = anim.snowPositions;
+    const vel = anim.snowVelocities;
+    const count = anim.snowCount;
+    const windX = Math.sin(now * 0.0009) * 0.45;
+    const windZ = Math.cos(now * 0.0007) * 0.35;
 
-  for (let i = 0; i < count; i++) {
-    const idx = i * 3;
-    pos[idx + 1] -= vel[idx + 1] * dt;
-    pos[idx + 0] += (vel[idx + 0] + windX) * dt;
-    pos[idx + 2] += (vel[idx + 2] + windZ) * dt;
+    for (let i = 0; i < count; i++) {
+      const idx = i * 3;
+      pos[idx + 1] -= vel[idx + 1] * dt;
+      pos[idx + 0] += (vel[idx + 0] + windX) * dt;
+      pos[idx + 2] += (vel[idx + 2] + windZ) * dt;
 
-    if (pos[idx + 1] < 0.2) {
-      pos[idx + 1] = 82.0 + Math.random() * 8.0;
-      pos[idx + 0] = (Math.random() - 0.5) * anim.wSpread;
-      pos[idx + 2] = (Math.random() - 0.5) * anim.dSpread;
+      if (pos[idx + 1] < 0.2) {
+        pos[idx + 1] = 82.0 + Math.random() * 8.0;
+        pos[idx + 0] = (Math.random() - 0.5) * anim.wSpread;
+        pos[idx + 2] = (Math.random() - 0.5) * anim.dSpread;
+      }
     }
+    anim.snowMesh.geometry.attributes.position.needsUpdate = true;
   }
-  anim.snowMesh.geometry.attributes.position.needsUpdate = true;
 
   // 2. 樹頂伯利恆之星與點光源微幅金色呼吸動態
   const starBreath = Math.sin(now * 0.0022);
@@ -10707,8 +10709,11 @@ function setVisualTheme(theme) {
   const isXmas = (theme === 'xmas');
   const isRain = (theme === 'rain');
 
-  // 氣候雨絲系統與撐傘切換
+  // 氣候雨絲系統與撐傘切換；午後陣雨時自動停用飄雪粒子以節省資源
   rainAtmosphereGroup.visible = isRain;
+  if (xmasAtmosphereAnim && xmasAtmosphereAnim.snowMesh) {
+    xmasAtmosphereAnim.snowMesh.visible = !isRain;
+  }
   if (avatarLimbs.umbrella) {
     avatarLimbs.umbrella.visible = isRain;
   }
